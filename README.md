@@ -1,5 +1,4 @@
-# agile-recommender-addons
-add-on tools for the recommender service
+Add-on tools for the agile recommender service:
 
 ## ClusterSpecificHeuristics
 calculates heuristics for the agile protocol configurator
@@ -7,6 +6,5 @@ calculates heuristics for the agile protocol configurator
 ## CSD
 calculates diagnoses for the agile protocol configurator
 
-
-## ConfRix
+## HeuRix
 recommends configurations for the agile protocol configurator

@@ -1,0 +1,56 @@
+UserProfiles2--------------------------------------------
+2 iterations, Lambda= 0.05
+
+88.282.976
+SVD: [RecommendedItem[item:3, value:0.42319992]]
+127.610.152
+ALS: [RecommendedItem[item:3, value:0.0]]
+
+
+2 iterations, Lambda= 2
+118.766.226
+SVD: [RecommendedItem[item:3, value:0.42336053]]
+
+120.150.408
+ALS: [RecommendedItem[item:3, value:0.0]]
+
+
+20 iterations, Lambda= 2
+54.220.541
+SVD: [RecommendedItem[item:3, value:0.57661766]]
+104.930.943
+ALS: [RecommendedItem[item:3, value:0.0]]
+
+
+20 iterations, Lambda= 0.05
+52510257
+SVD: [RecommendedItem[item:3, value:0.57723427]]
+101926051
+ALS: [RecommendedItem[item:3, value:0.0]]
+
+UserProfiles3--------------------------------------------
+
+20 iterations, Lambda= 0.05
+123.981.982
+SVD: [RecommendedItem[item:7, value:0.48004285], RecommendedItem[item:4, value:0.47943857], RecommendedItem[item:6, value:0.3990077], RecommendedItem[item:5, value:0.39873835]]
+308.242.808
+ALS: [RecommendedItem[item:4, value:0.22339574], RecommendedItem[item:7, value:0.22339574], RecommendedItem[item:5, value:0.11169787], RecommendedItem[item:6, value:0.11169787]]
+
+20 iterations, Lambda= 2
+127.460.398
+SVD: [RecommendedItem[item:7, value:0.47754386], RecommendedItem[item:4, value:0.4766975], RecommendedItem[item:5, value:0.3965495], RecommendedItem[item:6, value:0.39613882]]
+266.972.085
+ALS: [RecommendedItem[item:4, value:0.0], RecommendedItem[item:5, value:0.0], RecommendedItem[item:6, value:0.0], RecommendedItem[item:7, value:0.0]]
+
+2 iterations, Lambda= 2
+95.042.465
+SVD: [RecommendedItem[item:7, value:0.27033126], RecommendedItem[item:4, value:0.2701082], RecommendedItem[item:6, value:0.2622471], RecommendedItem[item:5, value:0.26197553]]
+112.136.431
+ALS: [RecommendedItem[item:4, value:1.068632E-6], RecommendedItem[item:7, value:1.068632E-6], RecommendedItem[item:5, value:5.34316E-7], RecommendedItem[item:6, value:5.34316E-7]]
+
+2 iterations, Lambda= 0.05
+79.528.156
+SVD: [RecommendedItem[item:4, value:0.2701991], RecommendedItem[item:7, value:0.27005547], RecommendedItem[item:5, value:0.26187524], RecommendedItem[item:6, value:0.2616065]]
+125.686.201
+ALS: [RecommendedItem[item:4, value:0.32232705], RecommendedItem[item:7, value:0.32232705], RecommendedItem[item:5, value:0.16116352], RecommendedItem[item:6, value:0.16116352]]
+
