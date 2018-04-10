@@ -546,6 +546,15 @@ public class BikeConfig {
 //!((frame_biketype == 1)) &&
 //!((frame_biketype == 2))) >> 1));
 		
+		// ADDITIONAL CONSTRAINTS
+//		for(int i=0;i<numberOfVariables;i++){
+//			int value = vars[i].getDomainSize();
+//			int minvalue = vars[i].getLB();
+//			int maxvalue = vars[i].getUB();
+//			
+//			int avg = (maxvalue-minvalue)/2;
+//			bikeModel.arithm(vars[i],">",avg).post();
+//		}
 		
 	}
 	

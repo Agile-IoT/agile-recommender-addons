@@ -21,7 +21,7 @@ public class RunConfRix {
 		
 		// STEP-2: generate dataset with problems
 		BikeConfigReqs datasetGenerator= new BikeConfigReqs();
-		int numberOfProblems= 3;
+		int numberOfProblems= 2;
 		String outputDirectory =  "Files/BikeConfigDataset";
 		datasetGenerator.generateDataset(numberOfProblems,solnSize,solutionsFile, outputDirectory);
 		System.out.println("STEP-2 is completed.");
@@ -40,7 +40,9 @@ public class RunConfRix {
 			try {
 				dataModel = new FileDataModel(new File(problemFile));  // outputFolder+"/Problem_"+i
 				//recommendedItems = MF.SVD(dataModel,numFeatures,numIterations,userID,numberRecommendedItems);
-				recommendedItems = MF.ALS(dataModel, numFeatures, numIterations, lambda, userID, numberRecommendedItems);	
+				//recommendedItems = MF.ALS(dataModel, numFeatures, numIterations, lambda, userID, numberRecommendedItems);
+				Spark.inputFile=problemFile;
+				Spark.main(null);
 				
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
