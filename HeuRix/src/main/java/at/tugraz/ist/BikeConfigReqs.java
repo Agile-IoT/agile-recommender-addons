@@ -24,72 +24,81 @@ public class BikeConfigReqs {
     
     public BikeConfigReqs(){}
     
-	public void generateDataset (int numberofReqs, int solnSize, String inputFile, String outputFolder)
+	public int[][] generateDataset (int numberofReqs, int solnSize, String inputFile, String outputFolder, boolean istype2)
 	{
 		bikeConfigProblems = new BikeConfig[numberofReqs];
 		bikeConfigProblems_copies = new BikeConfig[numberofReqs];
 		reqs = new int[numberofReqs][34];
 		int problemIndex = solnSize;
 		
-		// WRITE DATASET
+		
 		for (int i=0;i<numberofReqs;i++){
 			bikeConfigProblems[i] = new BikeConfig();
 			bikeConfigProblems_copies[i] = new BikeConfig();
 			
-			File problemFile = new File(outputFolder+"/Problem_"+i);
-			String line ;
-			if (!problemFile.exists()) {
-				try {
-					problemFile.createNewFile();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-			}
-			
-			// COPY SOLUTIONS TO THE FILE
-			try {
-				FileUtils.copyFile(new File(inputFile), problemFile);
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			
-			
-			// OPEN FILE TO WRITE
-			FileWriter fw = null;
-			try {
-				fw = new FileWriter(problemFile.getAbsolutePath(), true);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			BufferedWriter bw = new BufferedWriter(fw);
+//			// FILE OPERATIONS
+//			File problemFile = new File(outputFolder+"/Problem_"+i);
+//			String line ;
+//			if (problemFile.exists()) 
+//				problemFile.delete();
+//			
+//				try {
+//					problemFile.createNewFile();
+//				} catch (IOException e) {
+//					// TODO Auto-generated catch block
+//					e.printStackTrace();
+//				}
+//			
+//			
+//			// COPY SOLUTIONS TO THE FILE
+//			try {
+//				FileUtils.copyFile(new File(inputFile), problemFile);
+//			} catch (IOException e1) {
+//				// TODO Auto-generated catch block
+//				e1.printStackTrace();
+//			}
+//			
+//			
+//			// OPEN FILE TO WRITE
+//			FileWriter fw = null;
+//			try {
+//				fw = new FileWriter(problemFile.getAbsolutePath(), true);
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//			BufferedWriter bw = new BufferedWriter(fw);
 		
 			
-			// ADD USER REQS TO THE FILE
-			List<String> lines = generateREQSforAProblem(i);
+			// GENERATE A USERS REQ
+			//List<String> lines = generateREQSforAProblem(i,istype2);
+			reqs[i] = generateREQSforAProblem(i,istype2);
 			
-			for(int j=0;j<lines.size();j++)			
-				try { 
-					bw.write(problemIndex+","+lines.get(j)); // ADD USER ID: i
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
 			
-			// CLOSE FILE 
-			try {
-				bw.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+//			// FILE OPERATIONS
+//			for(int j=0;j<lines.size();j++)			
+//				try { 
+//					if(j==0)
+//						bw.write("");
+//					bw.write(problemIndex+","+lines.get(j)); // ADD USER ID: i
+//				} catch (IOException e) {
+//					e.printStackTrace();
+//				}
+//			
+//			// CLOSE FILE 
+//			try {
+//				bw.close();
+//			} catch (IOException e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+		
 		}
-		
+		return reqs;
 		
 	}
 
-	public List<String> generateREQSforAProblem (int index){
+	public int [] generateREQSforAProblem (int index, boolean isType2){
 		
 		int [] reqs = new int[numberOfvariables];
 		List<String> lines = new ArrayList<String>();
@@ -106,21 +115,37 @@ public class BikeConfigReqs {
 				bikeConfigProblems[index].bikeModel.arithm(bikeConfigProblems[index].vars[t],"=",random).post();
 				bikeConfigProblems_copies[index].bikeModel.arithm(bikeConfigProblems_copies[index].vars[t],"=",random).post();
 			
-				for (int d=0;d<size;d++){ // for ex: size is 14
-					String value = "0.0";
-					if(random==d) // for ex : random=5 and d=5
-						value = "1.0";
-					String s= itemIndex+","+value+"\n";
+				// ENCODED SOLUTIONS
+				if(!isType2){
+					for (int d=0;d<size;d++){ // for ex: size is 14
+						String value = "0.0";
+						if(random==d) // for ex : random=5 and d=5
+							value = "1.0";
+						String s= itemIndex+","+value+"\n";
+						lines.add(s);
+						itemIndex++;
+					}
+				}
+				// REAL SOLUTIONS
+				else{
+					String s= itemIndex+","+random+"\n";
 					lines.add(s);
 					itemIndex++;
 				}
 			}
-			else
-				itemIndex += size;
+			else{
+				// ENCODED SOLUTIONS
+				if(!isType2)
+					itemIndex += size;
+				// REAL SOLUTIONS
+				else
+					itemIndex ++;
+			}
+			
 		}
-		return lines;		
+		//return lines;		
+		return reqs;		
 	}
 	
-
 	
 }

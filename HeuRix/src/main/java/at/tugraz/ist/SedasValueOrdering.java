@@ -16,9 +16,11 @@ public class SedasValueOrdering implements IntValueSelector {
 	 	@Override
 	    public int selectValue(IntVar var) {
 	 		int returnvalue= 0;
-	 		if(varID!=var.getId())
+	 		if(varID!=var.getId()){
 	 			counter = 0;
-	 		returnvalue = valueSelections[var.getId()][counter];
+	 			varID = var.getId();
+	 		}
+	 		returnvalue = valueSelections[var.getId()-1][counter];
 	 		counter++;
 	 			
 	        return returnvalue;

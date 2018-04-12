@@ -10,6 +10,6 @@ public class TestBikeConfig {
 	
 	public static void main(String[] args) {
 		BikeConfig bike = new BikeConfig();
-		bike.generateSampleSolutions(1,null);
+		bike.generateSampleSolutions(1,null,false);
 	}	
 }

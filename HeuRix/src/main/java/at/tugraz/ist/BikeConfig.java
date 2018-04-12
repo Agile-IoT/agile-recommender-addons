@@ -546,22 +546,50 @@ public class BikeConfig {
 //!((frame_biketype == 1)) &&
 //!((frame_biketype == 2))) >> 1));
 		
-		// ADDITIONAL CONSTRAINTS
-//		for(int i=0;i<numberOfVariables;i++){
-//			int value = vars[i].getDomainSize();
-//			int minvalue = vars[i].getLB();
-//			int maxvalue = vars[i].getUB();
-//			
-//			int avg = (maxvalue-minvalue)/2;
-//			bikeModel.arithm(vars[i],">",avg).post();
-//		}
 		
+		// ADDITIONAL CONSTRAINTS
+		for(int i=0;i<numberOfVariables;i++){
+			int value = vars[i].getDomainSize();
+			int minvalue = vars[i].getLB();
+			int maxvalue = vars[i].getUB();
+			
+			int avg = (maxvalue-minvalue)/2;
+			if (i<numberOfVariables-1)
+				bikeModel.ifThen(
+			 			   bikeModel.arithm(vars[i],">",avg),
+			 			   bikeModel.arithm(vars[i+1],"!=",vars[i])
+				);
+			if (i<numberOfVariables-2)
+				bikeModel.ifThen(
+			 			   bikeModel.arithm(vars[i],">",avg),
+			 			   bikeModel.arithm(vars[i+2],"!=",vars[i])
+				);
+			
+			
+			
+			
+			if (i>1)
+				bikeModel.ifThen(
+			 			   bikeModel.arithm(vars[i],"<",avg),
+			 			   bikeModel.arithm(vars[i-1],"!=",vars[i])
+				);
+			if (i>2)
+			bikeModel.ifThen(
+			 			   bikeModel.arithm(vars[i],"<",avg),
+			 			   bikeModel.arithm(vars[i-2],"!=",vars[i])
+			);
+			
+			
+		}
+		
+	
 	}
 	
-	public void generateSampleSolutions(int number, String outputFile){
+	public int [][] generateSampleSolutions(int number, String outputFile, boolean istype2){
 		
 		 Solver solver = bikeModel.getSolver();
 		 int counter = 0;
+		 int [][] solutions = new int [number][numberOfVariables];
 		 
 		VariableSelector varSelector =  new InputOrder<>(bikeModel);
 		IntValueSelector valueSelector = new IntDomainRandom(1);
@@ -576,25 +604,35 @@ public class BikeConfig {
 				));
 			 
 			 solver.solve();
-			 int []values = new int [numberOfVariables];
+			 solutions[counter] = new int [numberOfVariables];
 			 for(int i=0;i<numberOfVariables;i++)
-				 values[i]=((IntVar)(bikeModel.getVar(i))).getValue();
-			 writeSolutionToFile(outputFile,values,counter);
+				 solutions[counter][i]=((IntVar)(bikeModel.getVar(i))).getValue();
+			 
+			 writeSolutionToFile(outputFile,solutions[counter],counter,istype2);
 			 counter++;
 		 }while(counter < number);
+		 return solutions;
 	}
 	
-	private void writeSolutionToFile (String outputFile, int []values, int index){
+	
+	private void writeSolutionToFile (String outputFile, int []values, int index, boolean istype2){
 		
 		int itemIndex = 0;
 		List<String> lines = new ArrayList<String>();
 		for (int t=0;t<numberOfVariables;t++){
 			int size = domainSizes[t];
-			for (int d=0;d<size;d++){ // for ex: size is 14
-				String value = "0.0";
-				if(values[t]==d) // for ex : random=5 and d=5
-					value = "1.0";
-				String s= itemIndex+","+value+"\n";
+			if(!istype2){
+				for (int d=0;d<size;d++){ // for ex: size is 14
+					String value = "0.0";
+					if(values[t]==d) // for ex : random=5 and d=5
+						value = "1.0";
+					String s= itemIndex+","+value+"\n";
+					lines.add(s);
+					itemIndex++;
+				}
+			}
+			else{
+				String s= itemIndex+","+values[t]+"\n";
 				lines.add(s);
 				itemIndex++;
 			}
@@ -606,14 +644,14 @@ public class BikeConfig {
 		// WRITE DATASET
 		File file = new File(outputFile);
 		String line ;
-		if (!file.exists()) {
-		    try {
-				file.createNewFile();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+		if (!file.exists()) 
+			try {
+					file.createNewFile();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
 			}
-		}
+		
 					
 		// OPEN FILE TO WRITE
 		FileWriter fw = null;
