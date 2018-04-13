@@ -31,7 +31,7 @@ public class RunConfRix {
 		// *********************************************************************
 		// STEP-1: GENERATE SOLUTIONS (sample solutions of BikeConfig+user reqs)
 		// *********************************************************************
-		BikeConfig bikeProblem = new BikeConfig();
+		CP bikeProblem = new CP();
 		int solnSize= 10;
 		String solutionsFile = "Files/BikeConfigSolutions/Solutions_"+solnSize;
 		File file_soln = new File(solutionsFile);
@@ -77,8 +77,8 @@ public class RunConfRix {
 		// *********************************************************************
 		// STEP-3: GENERATE NEW PROBLEMS 
 		// *********************************************************************
-		BikeConfigReqs datasetGenerator= new BikeConfigReqs();
-		int numberOfProblems= 2;
+		CPwithREQs datasetGenerator= new CPwithREQs();
+		int numberOfProblems= 10;
 		int numberOfComparedHeuristics = 7; 
 		String outputDirectory =  "Files/BikeConfigDataset";
 		int [][] reqs = datasetGenerator.generateDataset(numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics);
@@ -172,7 +172,7 @@ public class RunConfRix {
 
 		// WITHOUT USING COBARIX 
 		// eliminate the first problems solving time
-		datasetGenerator.bikeConfigProblems_copies[0][0].bikeModel.getSolver().solve();
+		datasetGenerator.bikeConfigProblems_copies[0][0].modelKB.getSolver().solve();
 		
 		// Compared Value Ordering Heuristics
 		IntValueSelector [] valueorderingheuristics = new IntValueSelector[6];
@@ -190,7 +190,7 @@ public class RunConfRix {
 			for (int i=1;i<numberOfProblems;i++){
 				if(j!=numberOfComparedHeuristics-1)
 					datasetGenerator.bikeConfigProblems_copies[j][i].seValOrdHeuristics(valueorderingheuristics[j]);
-				datasetGenerator.bikeConfigProblems_copies[j][i].bikeModel.getSolver().solve();
+				datasetGenerator.bikeConfigProblems_copies[j][i].modelKB.getSolver().solve();
 			}
 		
 			long end2=System.nanoTime();
@@ -208,7 +208,7 @@ public class RunConfRix {
 		// online spent time
 		long start3=System.nanoTime();
 		for (int i=0;i<numberOfProblems;i++){
-			datasetGenerator.bikeConfigProblems[i].bikeModel.getSolver().solve();
+			datasetGenerator.bikeConfigProblems[i].modelKB.getSolver().solve();
 		}
 		long end3=System.nanoTime();
 		

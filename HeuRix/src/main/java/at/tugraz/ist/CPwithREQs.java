@@ -14,28 +14,28 @@ import org.chocosolver.solver.variables.IntVar;
 
 import at.tugraz.ist.fileOperations.WriteToFile;
 
-public class BikeConfigReqs {
+public class CPwithREQs {
 
     int [][] reqs;
     int numberOfvariables= 34;
     double requirementRate = 0.1;
-    BikeConfig [] bikeConfigProblems; 
-    BikeConfig [][] bikeConfigProblems_copies; 
+    CP [] bikeConfigProblems; 
+    CP [][] bikeConfigProblems_copies; 
     
-    public BikeConfigReqs(){}
+    public CPwithREQs(){}
     
 	public int[][] generateDataset (int numberofReqs, int solnSize, String inputFile, String outputFolder, boolean istype2,int numberOfComparedHeuristics)
 	{
-		bikeConfigProblems = new BikeConfig[numberofReqs];
-		bikeConfigProblems_copies = new BikeConfig[numberOfComparedHeuristics][numberofReqs];
+		bikeConfigProblems = new CP[numberofReqs];
+		bikeConfigProblems_copies = new CP[numberOfComparedHeuristics][numberofReqs];
 		reqs = new int[numberofReqs][34];
 		int problemIndex = solnSize;
 		
 		
 		for (int i=0;i<numberofReqs;i++){
-			bikeConfigProblems[i] = new BikeConfig();
+			bikeConfigProblems[i] = new CP();
 			for(int j=0;j<numberOfComparedHeuristics;j++){
-				bikeConfigProblems_copies[j][i] = new BikeConfig();
+				bikeConfigProblems_copies[j][i] = new CP();
 			}
 			
 			
@@ -115,11 +115,11 @@ public class BikeConfigReqs {
 			// DECIDE TO INITIATE THIS VAR OR NOT
 			if(Math.random()<requirementRate){
 				random = (int) (Math.random()*size); // for ex: random=5
-				bikeConfigProblems[index].bikeModel.arithm(bikeConfigProblems[index].vars[t],"=",random).post();
+				bikeConfigProblems[index].modelKB.arithm(bikeConfigProblems[index].vars[t],"=",random).post();
 				
 			
 				for(int j=0;j<numberOfComparedHeuristics;j++){
-					bikeConfigProblems_copies[j][index].bikeModel.arithm(bikeConfigProblems_copies[j][index].vars[t],"=",random).post();
+					bikeConfigProblems_copies[j][index].modelKB.arithm(bikeConfigProblems_copies[j][index].vars[t],"=",random).post();
 				}
 				
 				// ENCODED SOLUTIONS

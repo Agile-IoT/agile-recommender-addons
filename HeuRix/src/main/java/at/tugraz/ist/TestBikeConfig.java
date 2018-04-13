@@ -9,7 +9,7 @@ public class TestBikeConfig {
 
 	
 	public static void main(String[] args) {
-		BikeConfig bike = new BikeConfig();
+		CP bike = new CP();
 		bike.generateSampleSolutions(1,null,false);
 	}	
 }

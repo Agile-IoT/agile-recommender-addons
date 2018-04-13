@@ -1,38 +1,16 @@
-package at.tugraz.ist;
-
-import static org.chocosolver.solver.search.strategy.Search.intVarSearch;
-
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+package at.tugraz.ist.knowledgebases;
 
 import org.chocosolver.solver.Model;
-import org.chocosolver.solver.Solution;
-import org.chocosolver.solver.Solver;
-import org.chocosolver.solver.search.strategy.selectors.values.IntDomainRandom;
-import org.chocosolver.solver.search.strategy.selectors.values.IntValueSelector;
-import org.chocosolver.solver.search.strategy.selectors.variables.InputOrder;
-import org.chocosolver.solver.search.strategy.selectors.variables.VariableSelector;
 import org.chocosolver.solver.variables.IntVar;
-import org.chocosolver.util.tools.ArrayUtils;
 
-// https://www.itu.dk/research/cla/externals/clib/bike2.cp
+//https://www.itu.dk/research/cla/externals/clib/bike2.cp
+public class Bike2KB implements KB{
 
-public class BikeConfig {
-	public Model bikeModel = new Model("Bike Configuration Problem");
+	Model modelKB = new Model("BikeConfigurationProblem");
 	int numberOfVariables = 34;
-	int [] domainSizes= new int[numberOfVariables];
-	HashMap<Integer,Integer> hashmapIDs = new HashMap<Integer,Integer>();  
-	int[] lowBoundaries = new int[numberOfVariables];  
-	public IntVar[] vars = new IntVar[numberOfVariables];
-	int [][] valueOrdering = new int [numberOfVariables][];
+	IntVar[] vars = new IntVar[numberOfVariables];
 	
-	
-	BikeConfig(){
+	public void Bike2KB(){
 		// 34 variables
     	defineVariables();
     	// 31 constraints
@@ -41,59 +19,47 @@ public class BikeConfig {
 	
 	public void defineVariables (){
     
-        vars[0] = bikeModel.intVar("person_gender", 0, 2);
-        vars[1] = bikeModel.intVar("person_height", 0, 5);
-        vars[2] = bikeModel.intVar("person_biketype", 0, 4);
-        vars[3] = bikeModel.intVar("frame_sku", 0, 37);
+        vars[0] = this.modelKB.intVar("person_gender", 0, 2);
+        vars[1] = this.modelKB.intVar("person_height", 0, 5);
+        vars[2] = this.modelKB.intVar("person_biketype", 0, 4);
+        vars[3] = this.modelKB.intVar("frame_sku", 0, 37);
         
-        vars[4] = bikeModel.intVar("frame_color", 0, 14);
-        vars[5] = bikeModel.intVar("frame_biketype", 0, 4);
-        vars[6] = bikeModel.intVar("frame_size", 0, 14);
-        vars[7] = bikeModel.intVar("frame_gender", 0, 2);
-        vars[8] = bikeModel.intVar("tires_sku", 0, 16);
+        vars[4] = this.modelKB.intVar("frame_color", 0, 14);
+        vars[5] = this.modelKB.intVar("frame_biketype", 0, 4);
+        vars[6] = this.modelKB.intVar("frame_size", 0, 14);
+        vars[7] = this.modelKB.intVar("frame_gender", 0, 2);
+        vars[8] = this.modelKB.intVar("tires_sku", 0, 16);
         
-        vars[9] = bikeModel.intVar("tires_height", 0, 3);
-        vars[10] = bikeModel.intVar("tires_width", 0, 5);
-        vars[11] = bikeModel.intVar("tires_profile", 0, 11);
-        vars[12] = bikeModel.intVar("rims_sku", 0, 12);
-        vars[13] = bikeModel.intVar("rims_height", 0, 3);
+        vars[9] = this.modelKB.intVar("tires_height", 0, 3);
+        vars[10] = this.modelKB.intVar("tires_width", 0, 5);
+        vars[11] = this.modelKB.intVar("tires_profile", 0, 11);
+        vars[12] = this.modelKB.intVar("rims_sku", 0, 12);
+        vars[13] = this.modelKB.intVar("rims_height", 0, 3);
 		
-        vars[14] = bikeModel.intVar("rims_width", 0, 5);
-        vars[15] = bikeModel.intVar("gear_sku", 0, 15);
-        vars[16] = bikeModel.intVar("gear_gears", 0, 10);
-        vars[17] = bikeModel.intVar("gear_biketype", 0, 4);
-        vars[18] = bikeModel.intVar("pedals_sku", 0, 9);
+        vars[14] = this.modelKB.intVar("rims_width", 0, 5);
+        vars[15] = this.modelKB.intVar("gear_sku", 0, 15);
+        vars[16] = this.modelKB.intVar("gear_gears", 0, 10);
+        vars[17] = this.modelKB.intVar("gear_biketype", 0, 4);
+        vars[18] = this.modelKB.intVar("pedals_sku", 0, 9);
         
-        vars[19] = bikeModel.intVar("pedals_pedaltype", 0, 3);
-        vars[20] = bikeModel.intVar("shoes_sku", 0, 5);
-        vars[21] = bikeModel.intVar("shoes_pedaltype", 0, 3);
+        vars[19] = this.modelKB.intVar("pedals_pedaltype", 0, 3);
+        vars[20] = this.modelKB.intVar("shoes_sku", 0, 5);
+        vars[21] = this.modelKB.intVar("shoes_pedaltype", 0, 3);
         
-        vars[22] = bikeModel.intVar("frame_internal", 0, 2);
-        vars[23] = bikeModel.intVar("extra_Carrier", 0, 2);
-        vars[24] = bikeModel.intVar("extra_Mudguard", 0, 2);
-        vars[25] = bikeModel.intVar("extra_Lock", 0, 2);
-        vars[26] = bikeModel.intVar("extra_Pump", 0, 2);
-        vars[27] = bikeModel.intVar("extra_Bottle", 0, 2);
-        vars[28] = bikeModel.intVar("extra_Basket", 0, 2);
-        vars[29] = bikeModel.intVar("extra_Cateye", 0, 2);
-        vars[30] = bikeModel.intVar("extra_Sidereflex", 0, 2);
-        vars[31] = bikeModel.intVar("extra_Frontreflex", 0, 2);
-        vars[32] = bikeModel.intVar("extra_Propstand", 0, 2);
-        vars[33] = bikeModel.intVar("gear_internal", 0, 2);
+        vars[22] = this.modelKB.intVar("frame_internal", 0, 2);
+        vars[23] = this.modelKB.intVar("extra_Carrier", 0, 2);
+        vars[24] = this.modelKB.intVar("extra_Mudguard", 0, 2);
+        vars[25] = this.modelKB.intVar("extra_Lock", 0, 2);
+        vars[26] = this.modelKB.intVar("extra_Pump", 0, 2);
+        vars[27] = this.modelKB.intVar("extra_Bottle", 0, 2);
+        vars[28] = this.modelKB.intVar("extra_Basket", 0, 2);
+        vars[29] = this.modelKB.intVar("extra_Cateye", 0, 2);
+        vars[30] = this.modelKB.intVar("extra_Sidereflex", 0, 2);
+        vars[31] = this.modelKB.intVar("extra_Frontreflex", 0, 2);
+        vars[32] = this.modelKB.intVar("extra_Propstand", 0, 2);
+        vars[33] = this.modelKB.intVar("gear_internal", 0, 2);
         
-        int index = 0;
-        for(int i=0;i<numberOfVariables;i++){
-        	domainSizes[i] =vars[i].getDomainSize();
-        	valueOrdering[i]= new int[domainSizes[i]] ;
-        	for(int j=0;j<domainSizes[i];j++){
-        		if(j==0)
-        			lowBoundaries[i]=index;
-        		hashmapIDs.put(index,i);  
-        		index++;
-        		valueOrdering[i][j]=j;
-        	}
-        }
-
+       
 	}
 	public void defineConstraints() {
 // 31 CONSTRAINTS		
@@ -305,36 +271,36 @@ public class BikeConfig {
 //		R2:
 //		(((frame_biketype == 1) ||
 //		(frame_biketype == 2)) >> frame_internal);
-		bikeModel.ifThen(
- 			   bikeModel.arithm(vars[5],"=",1),
- 			   bikeModel.arithm(vars[22],"=",1)
+		this.modelKB.ifThen(
+ 			   this.modelKB.arithm(vars[5],"=",1),
+ 			   this.modelKB.arithm(vars[22],"=",1)
 	    );
-		bikeModel.ifThen(
-	 			   bikeModel.arithm(vars[5],"=",2),
-	 			   bikeModel.arithm(vars[22],"=",1)
+		this.modelKB.ifThen(
+	 			   this.modelKB.arithm(vars[5],"=",2),
+	 			   this.modelKB.arithm(vars[22],"=",1)
 		);
 			
 		
 //R3:
 //((frame_biketype == 4) >> !(frame_internal));
 
-		bikeModel.ifThen(
-	 			   bikeModel.arithm(vars[5],"=",4),
-	 			   bikeModel.arithm(vars[22],"=",0)
+		this.modelKB.ifThen(
+	 			   this.modelKB.arithm(vars[5],"=",4),
+	 			   this.modelKB.arithm(vars[22],"=",0)
 		    );
 //R4:
 //(extra_Carrier >> extra_Mudguard);
 
-		bikeModel.ifThen(
-	 			   bikeModel.arithm(vars[23],"=",1),
-	 			   bikeModel.arithm(vars[24],"=",1)
+		this.modelKB.ifThen(
+	 			   this.modelKB.arithm(vars[23],"=",1),
+	 			   this.modelKB.arithm(vars[24],"=",1)
 		    );
 //R5:
 //(extra_Pump && extra_Bottle);
 		
-		bikeModel.ifThen(
-	 			   bikeModel.arithm(vars[26],"=",1),
-	 			   bikeModel.arithm(vars[27],"=",1)
+		this.modelKB.ifThen(
+	 			   this.modelKB.arithm(vars[26],"=",1),
+	 			   this.modelKB.arithm(vars[27],"=",1)
 		    );
 		
 //R6:
@@ -479,31 +445,31 @@ public class BikeConfig {
 		
 //R13:
 //(!(frame_internal) >> !(extra_Propstand));
-		bikeModel.ifThen(
-	 			   bikeModel.arithm(vars[22],"=",0),
-	 			   bikeModel.arithm(vars[32],"=",0)
+		this.modelKB.ifThen(
+	 			   this.modelKB.arithm(vars[22],"=",0),
+	 			   this.modelKB.arithm(vars[32],"=",0)
 		    );
 //R14:
 //(rims_height == tires_height);
-		bikeModel.arithm(vars[13],"=",vars[9]).post();
+		this.modelKB.arithm(vars[13],"=",vars[9]).post();
 //R15:
 //(rims_width == tires_width);
-		bikeModel.arithm(vars[14],"=",vars[10]).post();
+		this.modelKB.arithm(vars[14],"=",vars[10]).post();
 //R16:
 //(frame_internal == gear_internal);
-		bikeModel.arithm(vars[22],"=",vars[33]).post();
+		this.modelKB.arithm(vars[22],"=",vars[33]).post();
 //R17:
 //(pedals_pedaltype == shoes_pedaltype);
-		bikeModel.arithm(vars[19],"=",vars[21]).post();
+		this.modelKB.arithm(vars[19],"=",vars[21]).post();
 //R18:
 //(frame_biketype == gear_biketype);
-		bikeModel.arithm(vars[5],"=",vars[17]).post();
+		this.modelKB.arithm(vars[5],"=",vars[17]).post();
 //R19:
 //(person_gender == frame_gender);
-		bikeModel.arithm(vars[0],"=",vars[7]).post();
+		this.modelKB.arithm(vars[0],"=",vars[7]).post();
 //R20:
 //(person_biketype == frame_biketype);
-		bikeModel.arithm(vars[2],"=",vars[5]).post();
+		this.modelKB.arithm(vars[2],"=",vars[5]).post();
 //R21:
 //((((frame_biketype == 4) ||
 // (frame_biketype == 1)) && (person_height == 1)) >> ((frame_size >= 5) && (frame_size <= 8)));
@@ -547,176 +513,44 @@ public class BikeConfig {
 //!((frame_biketype == 2))) >> 1));
 		
 		
-		// ADDITIONAL CONSTRAINTS
-		for(int i=0;i<numberOfVariables;i++){
-			int value = vars[i].getDomainSize();
-			int minvalue = vars[i].getLB();
-			int maxvalue = vars[i].getUB();
-			
-			int avg = (maxvalue-minvalue)/2;
-			if (i<numberOfVariables-1)
-				bikeModel.ifThen(
-			 			   bikeModel.arithm(vars[i],">",avg),
-			 			   bikeModel.arithm(vars[i+1],"!=",vars[i])
-				);
-			if (i<numberOfVariables-2)
-				bikeModel.ifThen(
-			 			   bikeModel.arithm(vars[i],">",avg),
-			 			   bikeModel.arithm(vars[i+2],"!=",vars[i])
-				);
-			
-			
-			
-			
-			if (i>1)
-				bikeModel.ifThen(
-			 			   bikeModel.arithm(vars[i],"<",avg),
-			 			   bikeModel.arithm(vars[i-1],"!=",vars[i])
-				);
-			if (i>2)
-			bikeModel.ifThen(
-			 			   bikeModel.arithm(vars[i],"<",avg),
-			 			   bikeModel.arithm(vars[i-2],"!=",vars[i])
-			);
-			
-			
-		}
-		
 	
-	}
-	
-	public int [][] generateSampleSolutions(int number, String outputFile, boolean istype2){
-		
-		 Solver solver = bikeModel.getSolver();
-		 int counter = 0;
-		 int [][] solutions = new int [number][numberOfVariables];
-		 
-		VariableSelector varSelector =  new InputOrder<>(bikeModel);
-		IntValueSelector valueSelector = new IntDomainRandom(1);
-		 do{
-			 solver.setSearch(intVarSearch(
-		                
-					 varSelector,
-		               
-					 valueSelector,
-		               
-					vars
-				));
-			 
-			 solver.solve();
-			 solutions[counter] = new int [numberOfVariables];
-			 for(int i=0;i<numberOfVariables;i++)
-				 solutions[counter][i]=((IntVar)(bikeModel.getVar(i))).getValue();
-			 
-			 writeSolutionToFile(outputFile,solutions[counter],counter,istype2);
-			 counter++;
-		 }while(counter < number);
-		 return solutions;
 	}
 
-	private void writeSolutionToFile (String outputFile, int []values, int index, boolean istype2){
-		
-		int itemIndex = 0;
-		List<String> lines = new ArrayList<String>();
-		for (int t=0;t<numberOfVariables;t++){
-			int size = domainSizes[t];
-			if(!istype2){
-				for (int d=0;d<size;d++){ // for ex: size is 14
-					String value = "0.0";
-					if(values[t]==d) // for ex : random=5 and d=5
-						value = "1.0";
-					String s= itemIndex+","+value+"\n";
-					lines.add(s);
-					itemIndex++;
-				}
-			}
-			else{
-				String s= itemIndex+","+values[t]+"\n";
-				lines.add(s);
-				itemIndex++;
-			}
-		}
-		writeToFile(outputFile,lines,index);
+	@Override
+	public Model getModelKB() {
+		// TODO Auto-generated method stub
+		return modelKB;
+	}
+
+	@Override
+	public void setModelKB(Model m) {
+		// TODO Auto-generated method stub
+		modelKB = m;
+	}
+
+	@Override
+	public int getNumberOfVariables() {
+		// TODO Auto-generated method stub
+		return numberOfVariables;
+	}
+
+	@Override
+	public void setNumberOfVariables(int n) {
+		// TODO Auto-generated method stub
+		numberOfVariables = n;
+	}
+
+	@Override
+	public IntVar[] getVars() {
+		// TODO Auto-generated method stub
+		return vars;
+	}
+
+	@Override
+	public void setVars(IntVar[] v) {
+		// TODO Auto-generated method stub
+		vars=v;
 	}
 	
-	public void writeToFile(String outputFile,List<String> lines, int index){
-		// WRITE DATASET
-		File file = new File(outputFile);
-		String line ;
-		if (!file.exists()) 
-			try {
-					file.createNewFile();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-			}
-		
-					
-		// OPEN FILE TO WRITE
-		FileWriter fw = null;
-		try {
-			fw = new FileWriter(file.getAbsolutePath(), true);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		BufferedWriter bw = new BufferedWriter(fw);
-		
-					
-		// ADD USER REQS TO THE FILE
-		for(int j=0;j<lines.size();j++)			
-			try { 
-				bw.write(index+","+lines.get(j)); // ADD USER ID: i
-			} catch (IOException e) {
-							e.printStackTrace();
-			}
-					
-			// CLOSE FILE 
-			try {
-				bw.close();
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-	}
-	
-	public void setCOBARIXHeuristics (){
-		
-		SedasValueOrdering valueOrder = new SedasValueOrdering(valueOrdering);
-		VariableSelector varSelector =  new InputOrder<>(bikeModel);
-		IntValueSelector valueSelector = valueOrder;
-		
-	     
-		bikeModel.getSolver().setSearch(intVarSearch(
-                
-				varSelector,
-                // selects the smallest domain value (lower bound)
-				 
-				valueSelector,
-               
-                // variables to branch on
-				vars
-		));
-		
-	}
-	
-	public void seValOrdHeuristics (IntValueSelector valueOrder){
-		
-		VariableSelector varSelector =  new InputOrder<>(bikeModel);
-		IntValueSelector valueSelector = valueOrder;
-		
-	     
-		bikeModel.getSolver().setSearch(intVarSearch(
-                
-				varSelector,
-                // selects the smallest domain value (lower bound)
-				 
-				valueSelector,
-               
-                // variables to branch on
-				vars
-		));
-		
-	}
-	
+
 }
