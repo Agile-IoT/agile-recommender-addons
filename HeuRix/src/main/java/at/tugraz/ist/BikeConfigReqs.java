@@ -20,21 +20,24 @@ public class BikeConfigReqs {
     int numberOfvariables= 34;
     double requirementRate = 0.1;
     BikeConfig [] bikeConfigProblems; 
-    BikeConfig [] bikeConfigProblems_copies; 
+    BikeConfig [][] bikeConfigProblems_copies; 
     
     public BikeConfigReqs(){}
     
-	public int[][] generateDataset (int numberofReqs, int solnSize, String inputFile, String outputFolder, boolean istype2)
+	public int[][] generateDataset (int numberofReqs, int solnSize, String inputFile, String outputFolder, boolean istype2,int numberOfComparedHeuristics)
 	{
 		bikeConfigProblems = new BikeConfig[numberofReqs];
-		bikeConfigProblems_copies = new BikeConfig[numberofReqs];
+		bikeConfigProblems_copies = new BikeConfig[numberOfComparedHeuristics][numberofReqs];
 		reqs = new int[numberofReqs][34];
 		int problemIndex = solnSize;
 		
 		
 		for (int i=0;i<numberofReqs;i++){
 			bikeConfigProblems[i] = new BikeConfig();
-			bikeConfigProblems_copies[i] = new BikeConfig();
+			for(int j=0;j<numberOfComparedHeuristics;j++){
+				bikeConfigProblems_copies[j][i] = new BikeConfig();
+			}
+			
 			
 //			// FILE OPERATIONS
 //			File problemFile = new File(outputFolder+"/Problem_"+i);
@@ -72,7 +75,7 @@ public class BikeConfigReqs {
 			
 			// GENERATE A USERS REQ
 			//List<String> lines = generateREQSforAProblem(i,istype2);
-			reqs[i] = generateREQSforAProblem(i,istype2);
+			reqs[i] = generateREQSforAProblem(i,istype2,numberOfComparedHeuristics);
 			
 			
 //			// FILE OPERATIONS
@@ -98,7 +101,7 @@ public class BikeConfigReqs {
 		
 	}
 
-	public int [] generateREQSforAProblem (int index, boolean isType2){
+	public int [] generateREQSforAProblem (int index, boolean isType2, int numberOfComparedHeuristics){
 		
 		int [] reqs = new int[numberOfvariables];
 		List<String> lines = new ArrayList<String>();
@@ -113,8 +116,12 @@ public class BikeConfigReqs {
 			if(Math.random()<requirementRate){
 				random = (int) (Math.random()*size); // for ex: random=5
 				bikeConfigProblems[index].bikeModel.arithm(bikeConfigProblems[index].vars[t],"=",random).post();
-				bikeConfigProblems_copies[index].bikeModel.arithm(bikeConfigProblems_copies[index].vars[t],"=",random).post();
+				
 			
+				for(int j=0;j<numberOfComparedHeuristics;j++){
+					bikeConfigProblems_copies[j][index].bikeModel.arithm(bikeConfigProblems_copies[j][index].vars[t],"=",random).post();
+				}
+				
 				// ENCODED SOLUTIONS
 				if(!isType2){
 					for (int d=0;d<size;d++){ // for ex: size is 14
@@ -141,7 +148,7 @@ public class BikeConfigReqs {
 				else
 					itemIndex ++;
 			}
-			
+			reqs[t] = random;
 		}
 		//return lines;		
 		return reqs;		

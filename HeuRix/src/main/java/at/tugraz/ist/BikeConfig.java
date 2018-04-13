@@ -613,8 +613,7 @@ public class BikeConfig {
 		 }while(counter < number);
 		 return solutions;
 	}
-	
-	
+
 	private void writeSolutionToFile (String outputFile, int []values, int index, boolean istype2){
 		
 		int itemIndex = 0;
@@ -681,7 +680,7 @@ public class BikeConfig {
 			}
 	}
 	
-	public void setHeuristics (){
+	public void setCOBARIXHeuristics (){
 		
 		SedasValueOrdering valueOrder = new SedasValueOrdering(valueOrdering);
 		VariableSelector varSelector =  new InputOrder<>(bikeModel);
@@ -700,5 +699,24 @@ public class BikeConfig {
 		));
 		
 	}
-
+	
+	public void seValOrdHeuristics (IntValueSelector valueOrder){
+		
+		VariableSelector varSelector =  new InputOrder<>(bikeModel);
+		IntValueSelector valueSelector = valueOrder;
+		
+	     
+		bikeModel.getSolver().setSearch(intVarSearch(
+                
+				varSelector,
+                // selects the smallest domain value (lower bound)
+				 
+				valueSelector,
+               
+                // variables to branch on
+				vars
+		));
+		
+	}
+	
 }

@@ -9,6 +9,12 @@ import java.util.List;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
+import org.chocosolver.solver.search.strategy.selectors.values.IntDomainMax;
+import org.chocosolver.solver.search.strategy.selectors.values.IntDomainMedian;
+import org.chocosolver.solver.search.strategy.selectors.values.IntDomainMiddle;
+import org.chocosolver.solver.search.strategy.selectors.values.IntDomainMin;
+import org.chocosolver.solver.search.strategy.selectors.values.IntDomainRandom;
+import org.chocosolver.solver.search.strategy.selectors.values.IntDomainRandomBound;
 import org.chocosolver.solver.search.strategy.selectors.values.IntValueSelector;
 
 public class RunConfRix {
@@ -26,7 +32,7 @@ public class RunConfRix {
 		// STEP-1: GENERATE SOLUTIONS (sample solutions of BikeConfig+user reqs)
 		// *********************************************************************
 		BikeConfig bikeProblem = new BikeConfig();
-		int solnSize= 5;
+		int solnSize= 10;
 		String solutionsFile = "Files/BikeConfigSolutions/Solutions_"+solnSize;
 		File file_soln = new File(solutionsFile);
 		if (file_soln.exists()) 
@@ -73,8 +79,9 @@ public class RunConfRix {
 		// *********************************************************************
 		BikeConfigReqs datasetGenerator= new BikeConfigReqs();
 		int numberOfProblems= 2;
+		int numberOfComparedHeuristics = 7; 
 		String outputDirectory =  "Files/BikeConfigDataset";
-		int [][] reqs = datasetGenerator.generateDataset(numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2);
+		int [][] reqs = datasetGenerator.generateDataset(numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics);
 		System.out.println("STEP-3 is completed.");
 		
 
@@ -86,7 +93,7 @@ public class RunConfRix {
 		// *********************************************************************
 		// STEP-4: FIND SIMILAR PROBLEM FOR EACH PROBLEM (knn, jackard dist., aggregate)
 		// *********************************************************************
-		// TODO: implement knn & jackart dist. & aggregation
+		// TODO: implement knn & jaccard dist. & aggregation
 		
 		long start =System.nanoTime();
 		
@@ -152,31 +159,52 @@ public class RunConfRix {
 //				datasetGenerator.bikeConfigProblems[i].valueOrdering[variable][value] = 0;
 			    
 			}
-			datasetGenerator.bikeConfigProblems[i].setHeuristics();
+			datasetGenerator.bikeConfigProblems[i].setCOBARIXHeuristics();
 		}
 		System.out.println("STEP-6 is completed.");
 		
 		long end =System.nanoTime();
 		
 		// *********************************************************************
-		// STEP-7: SOLVE PROBLEMS USING VALUE ORDERINGS
+		// STEP-7: SOLVE PROBLEMS USING BUILT-IN VALUE ORDERINGS
 		// *********************************************************************
 		
 
 		// WITHOUT USING COBARIX 
 		// eliminate the first problems solving time
-		datasetGenerator.bikeConfigProblems_copies[0].bikeModel.getSolver().solve();
+		datasetGenerator.bikeConfigProblems_copies[0][0].bikeModel.getSolver().solve();
 		
-		long start2=System.nanoTime();
-		for (int i=1;i<numberOfProblems;i++){
-			datasetGenerator.bikeConfigProblems_copies[i].bikeModel.getSolver().solve();
+		// Compared Value Ordering Heuristics
+		IntValueSelector [] valueorderingheuristics = new IntValueSelector[6];
+		
+		 valueorderingheuristics[0] = new IntDomainMax();
+		 valueorderingheuristics[1] = new IntDomainMin();
+		 valueorderingheuristics[2] = new IntDomainMedian();
+		 valueorderingheuristics[3] = new IntDomainMiddle(true);
+		 valueorderingheuristics[4] = new IntDomainRandom(1);
+		 valueorderingheuristics[5] = new IntDomainRandomBound(1);
+		
+		
+		for (int j=0;j<numberOfComparedHeuristics;j++){
+			long start2=System.nanoTime();
+			for (int i=1;i<numberOfProblems;i++){
+				if(j!=numberOfComparedHeuristics-1)
+					datasetGenerator.bikeConfigProblems_copies[j][i].seValOrdHeuristics(valueorderingheuristics[j]);
+				datasetGenerator.bikeConfigProblems_copies[j][i].bikeModel.getSolver().solve();
+			}
+		
+			long end2=System.nanoTime();
+			long avgtime2 = ((end2-start2))/(numberOfProblems-1); 
+			System.out.println("WITH HEURISTIC#"+j+": "+ avgtime2);
 		}
-		long end2=System.nanoTime();
-		long avgtime2 = ((end2-start2))/(numberOfProblems-1); 
-		System.out.println("WITHOUT COBARIX: "+ (avgtime2));
 		
+		System.out.println("STEP-7 is completed.");
 		
-		// USING COBARIX 
+
+		// *********************************************************************
+		// STEP-8: SOLVE PROBLEMS USING COBARIX
+		// *********************************************************************
+		
 		// online spent time
 		long start3=System.nanoTime();
 		for (int i=0;i<numberOfProblems;i++){
@@ -187,9 +215,8 @@ public class RunConfRix {
 		long avgtime3 = ((end-start)+(end3-start3))/numberOfProblems; 
 		System.out.println("WITH COBARIX: "+ (avgtime3));
 		
+		System.out.println("STEP-8 is completed.");
 		
-		
-		System.out.println("STEP-7 is completed.");
 		
 		System.out.println("All steps are completed.");
 		
