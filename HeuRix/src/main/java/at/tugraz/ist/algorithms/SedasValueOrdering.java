@@ -1,4 +1,4 @@
-package at.tugraz.ist.cobarix;
+package at.tugraz.ist.algorithms;
 
 import org.chocosolver.solver.search.strategy.selectors.values.IntValueSelector;
 import org.chocosolver.solver.variables.IntVar;

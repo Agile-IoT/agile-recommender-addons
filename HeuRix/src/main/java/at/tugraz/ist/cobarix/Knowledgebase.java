@@ -22,6 +22,8 @@ import org.chocosolver.solver.search.strategy.selectors.variables.VariableSelect
 import org.chocosolver.solver.variables.IntVar;
 import org.chocosolver.util.tools.ArrayUtils;
 
+import at.tugraz.ist.algorithms.SedasValueOrdering;
+import at.tugraz.ist.fileOperations.ReadFile;
 import at.tugraz.ist.knowledgebases.Bike2KB;
 import at.tugraz.ist.knowledgebases.KB;
 
@@ -39,9 +41,9 @@ public class Knowledgebase {
 	HashMap<Integer,Integer> hashmapIDs = new HashMap<Integer,Integer>();  
 	int[] lowBoundaries = new int[numberOfVariables];  
 	int [][] valueOrdering = new int [numberOfVariables][];
-	//VariableSelector varSelector =  new InputOrder<>(modelKB);
-	//VariableSelector varSelector =  new Largest();
 	
+	int [][] purchases;
+	int [] purchaseIDs;
 	
 	Knowledgebase(){
 		
@@ -106,15 +108,31 @@ public class Knowledgebase {
 
 	}
 	
+
+	public int [][] readHistoricalTransactions(String inputFile){
+		
+		List<String> lines = ReadFile.readFile(inputFile);
+		purchases = new int [lines.size()][numberOfVariables];
+		
+		for(int i=0;i<lines.size();i++){
+			String [] parsed = lines.get(i).split(" ");
+			for(int j=0;j<numberOfVariables;j++){
+				purchases[i][j]= Integer.valueOf(parsed[j]);
+			}
+			purchaseIDs[i]= Integer.valueOf(parsed[numberOfVariables]);
+		}
+		return purchases;
+		
+	}
 	
-	public int [][] generateSampleSolutions(int number, String outputFile, boolean istype2){
+	public int [][] generateHistoricalTransactions(int number, String outputFile, boolean istype2){
 		
 		 Solver solver = modelKB.getSolver();
 		 int counter = 0;
 		 int [][] solutions = new int [number][numberOfVariables];
 		 
-		VariableSelector varSelector =  new InputOrder<>(modelKB);
-		IntValueSelector valueSelector = new IntDomainRandom(1);
+		 VariableSelector varSelector =  new InputOrder<>(modelKB);
+		 IntValueSelector valueSelector = new IntDomainRandom(1);
 		 do{
 			 solver.setSearch(intVarSearch(
 		                
@@ -136,6 +154,7 @@ public class Knowledgebase {
 		 return solutions;
 	}
 
+	
 	private void writeSolutionToFile (String outputFile, int []values, int index, boolean istype2){
 		
 		int itemIndex = 0;

@@ -1,4 +1,4 @@
-package at.tugraz.ist.cobarix;
+package at.tugraz.ist.algorithms;
 
 import java.util.Arrays;
 import java.util.List;
@@ -23,7 +23,7 @@ import scala.Tuple2;
 import org.apache.spark.mllib.recommendation.ALS;
 import org.apache.spark.mllib.recommendation.MatrixFactorizationModel;
 
-public class MF {
+public class MatrixFactorization {
 	
 	public static double[][] IF;
 	public static double[][] UF;

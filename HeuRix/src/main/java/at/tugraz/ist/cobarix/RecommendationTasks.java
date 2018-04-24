@@ -12,30 +12,36 @@ import java.util.List;
 import org.apache.commons.io.FileUtils;
 import org.chocosolver.solver.variables.IntVar;
 
+import at.tugraz.ist.fileOperations.ReadFile;
 import at.tugraz.ist.fileOperations.WriteToFile;
 
-public class HistoricalTransactions {
+public class RecommendationTasks {
 
+	int numberofReqs;
     int [][] reqs;
-    int numberOfvariables= 34;
+  
+    int numberOfvariables;
     double requirementRate = 0.1;
-    Knowledgebase [] bikeConfigProblems; 
-    Knowledgebase [][] bikeConfigProblems_copies; 
+    Knowledgebase [] recomTasks; 
+    Knowledgebase [][] recomTasks_copies; 
     
-    public HistoricalTransactions(){}
+    public RecommendationTasks(){}
     
 	public int[][] generateDataset (int numberofReqs, int solnSize, String inputFile, String outputFolder, boolean istype2,int numberOfComparedHeuristics)
 	{
-		bikeConfigProblems = new Knowledgebase[numberofReqs];
-		bikeConfigProblems_copies = new Knowledgebase[numberOfComparedHeuristics][numberofReqs];
+		this.numberofReqs = numberofReqs;
+		recomTasks = new Knowledgebase[numberofReqs];
+		numberOfvariables = recomTasks[0].numberOfVariables;
+		
+		recomTasks_copies = new Knowledgebase[numberOfComparedHeuristics][numberofReqs];
 		reqs = new int[numberofReqs][34];
 		int problemIndex = solnSize;
 		
 		
 		for (int i=0;i<numberofReqs;i++){
-			bikeConfigProblems[i] = new Knowledgebase();
+			recomTasks[i] = new Knowledgebase();
 			for(int j=0;j<numberOfComparedHeuristics;j++){
-				bikeConfigProblems_copies[j][i] = new Knowledgebase();
+				recomTasks_copies[j][i] = new Knowledgebase();
 			}
 			
 			
@@ -109,17 +115,17 @@ public class HistoricalTransactions {
 		// Generate random user requirements
 		for (int t=0;t<numberOfvariables;t++){
 			
-			int size = bikeConfigProblems[index].domainSizes[t];
+			int size = recomTasks[index].domainSizes[t];
 			int random = -1;
 			
 			// DECIDE TO INITIATE THIS VAR OR NOT
 			if(Math.random()<requirementRate){
 				random = (int) (Math.random()*size); // for ex: random=5
-				bikeConfigProblems[index].modelKB.arithm(bikeConfigProblems[index].vars[t],"=",random).post();
+				recomTasks[index].modelKB.arithm(recomTasks[index].vars[t],"=",random).post();
 				
 			
 				for(int j=0;j<numberOfComparedHeuristics;j++){
-					bikeConfigProblems_copies[j][index].modelKB.arithm(bikeConfigProblems_copies[j][index].vars[t],"=",random).post();
+					recomTasks_copies[j][index].modelKB.arithm(recomTasks_copies[j][index].vars[t],"=",random).post();
 				}
 				
 				// ENCODED SOLUTIONS
@@ -155,4 +161,39 @@ public class HistoricalTransactions {
 	}
 	
 	
+	public float getAccuracy(int [][] recommendations){
+		float accuracy = 0;
+		
+		for(int j=0;j<numberofReqs;j++){
+			int result =1;
+			
+			for(int i=0;i<numberOfvariables;i++){
+				if(recomTasks[0].purchases[j][i] != recommendations[j][i]){
+					result=0;
+					break;
+				}
+			}
+			accuracy += result;
+		}
+		
+		return accuracy/numberofReqs;
+	}
+
+	public float getAccuracy(int [] recommendedIDs){
+		float accuracy = 0;
+		
+		for(int j=0;j<numberofReqs;j++){
+			int result =1;
+			
+			if(recomTasks[0].purchaseIDs[j] != recommendedIDs[j]){
+					result=0;
+					break;
+				}
+			
+			accuracy += result;
+		}
+		
+		return accuracy/numberofReqs;
+	}
+
 }

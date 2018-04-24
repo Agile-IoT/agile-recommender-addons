@@ -19,15 +19,20 @@ import org.chocosolver.solver.search.strategy.selectors.values.IntValueSelector;
 import org.chocosolver.solver.search.strategy.selectors.variables.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import at.tugraz.ist.algorithms.MatrixFactorization;
+import at.tugraz.ist.algorithms.MinMaxNormalization;
+import at.tugraz.ist.algorithms.KNN;
+import at.tugraz.ist.knowledgebases.Bike2KB;
+
 public class RunConfRix {
 
 	@Autowired
 	public static void main (String [] args){
 		
-		
-		
 		// istype2 is not applying bitmap technique. so each var is stated with its value
 		boolean istype2 = false;
+		boolean isTestAccuracy = false;
+		String cameraFile = "Files/ConfigSolutions/CameraUserReqs.data";
 		
 		// *********************************************************************
 		// ****************       OFFLINE PHASE            *********************
@@ -36,13 +41,18 @@ public class RunConfRix {
 		// *********************************************************************
 		// STEP-1: GENERATE SOLUTIONS (sample solutions of BikeConfig+user reqs)
 		// *********************************************************************
-		Knowledgebase bikeProblem = new Knowledgebase();
+		Knowledgebase knowledgebase = new Knowledgebase();
 		int solnSize= 20;
-		String solutionsFile = "Files/BikeConfigSolutions/Solutions_"+solnSize;
+		String solutionsFile = "Files/ConfigSolutions/Solutions_"+solnSize;
 		File file_soln = new File(solutionsFile);
 		if (file_soln.exists()) 
 			file_soln.delete();
-		int [][] solutions = bikeProblem.generateSampleSolutions(solnSize, solutionsFile,istype2);
+		int [][] histTransactions;
+		if(isTestAccuracy)
+			histTransactions= knowledgebase.readHistoricalTransactions(cameraFile);
+		
+		else
+			histTransactions = knowledgebase.generateHistoricalTransactions(solnSize, solutionsFile,istype2);
 		System.out.println("STEP-1 is completed.");
 		
 		
@@ -55,21 +65,16 @@ public class RunConfRix {
 		int numIterations =2;
 		int userID=solnSize;
 		double lambda = 2;
-		int numberRecommendedItems=bikeProblem.numberOfVariables; // 34 vars 
-		//List<RecommendedItem> recommendedItems = null;
+		int numberRecommendedItems=knowledgebase.numberOfVariables;
 		double [][] p = null;
 		double [][] q = null;
 		
 		
 		try {
 				dataModel = new FileDataModel(new File(solutionsFile));  // outputFolder+"/Problem_"+i
-				MF.SVD(dataModel,numFeatures,numIterations,userID,numberRecommendedItems);
-				p=MF.UF;
-				q=MF.IF;
-				//recommendedItems = MF.ALS(dataModel, numFeatures, numIterations, lambda, userID, numberRecommendedItems);
-				//Spark.inputFile=problemFile;
-				//Spark.main(null);
-				//numberRecommendedItems = recommendedItems.size();
+				MatrixFactorization.SVD(dataModel,numFeatures,numIterations,userID,numberRecommendedItems);
+				p=MatrixFactorization.UF;
+				q=MatrixFactorization.IF;
 		} catch (Exception e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -80,13 +85,13 @@ public class RunConfRix {
 
 		
 		// *********************************************************************
-		// STEP-3: GENERATE NEW PROBLEMS 
+		// STEP-3: GENERATE/READ NEW PROBLEMS 
 		// *********************************************************************
-		HistoricalTransactions datasetGenerator= new HistoricalTransactions();
+		RecommendationTasks recommendationTasks= new RecommendationTasks();
 		int numberOfProblems= 3;
 		int numberOfComparedHeuristics = 78; 
-		String outputDirectory =  "Files/BikeConfigDataset";
-		int [][] reqs = datasetGenerator.generateDataset(numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics);
+		String outputDirectory =  "Files/ConfigDataset";
+		int [][] reqs = recommendationTasks.generateDataset(numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics);
 		System.out.println("STEP-3 is completed.");
 		
 
@@ -100,21 +105,26 @@ public class RunConfRix {
 		// *********************************************************************
 		// TODO: implement knn & jaccard dist. & aggregation
 		
-		long start =System.nanoTime();
+		long start = System.nanoTime();
 		
 		// find similar using euclidean distance
 		int [] similarSolutionForEachProblem = new int [numberOfProblems];
 		for(int i=0;i<numberOfProblems;i++){
 			double minDist = 0;
-			for (int s=0;s<solutions.length;s++){
-				double dist = MF.euclidean_distance(reqs[i],solutions[s]);
+			for (int s=0;s<histTransactions.length;s++){
+				// NORMALIZE
+				int [] reqs_normalized= MinMaxNormalization.normalize(reqs[i], knowledgebase.vars);
+				int [] soln_normalized= MinMaxNormalization.normalize(histTransactions[s], knowledgebase.vars);
+				//double dist = MF.euclidean_distance(reqs[i],solutions[s]);
+				// DISTANCE
+				double dist = MatrixFactorization.euclidean_distance(reqs_normalized,soln_normalized);
 				if(s!=0 && dist<minDist){
 					minDist = dist;
 					similarSolutionForEachProblem[i] = s;
 				}
 			}
 		}
-		long end_step4 =System.nanoTime();
+		long end_step4 = System.nanoTime();
 		System.out.println("STEP-4 is completed: "+(end_step4-start));
 		
 		// *********************************************************************
@@ -127,7 +137,7 @@ public class RunConfRix {
 			double [][] similarUsersFeatures = new double [1][];
 			similarUsersFeatures[0] = p[similarSolutionForEachProblem[i]];
 			double [][] predictionsForUser ;
-			predictionsForUser = MF.multiplyByMatrix(similarUsersFeatures, q);
+			predictionsForUser = MatrixFactorization.multiplyByMatrix(similarUsersFeatures, q);
 			predictions[i] = predictionsForUser[0];
 		}
 		
@@ -141,9 +151,9 @@ public class RunConfRix {
 		// TODO : update this part
 		for (int i=0;i<numberOfProblems;i++){
 			int index = 0;
-			for(int v=0;v<bikeProblem.numberOfVariables;v++){
+			for(int v=0;v<knowledgebase.numberOfVariables;v++){
 				HashMap<Double,Integer> valuesOfv = new HashMap<Double,Integer>();    
-				for(int d=0;d<bikeProblem.domainSizes[v];d++){
+				for(int d=0;d<knowledgebase.domainSizes[v];d++){
 					valuesOfv.put(predictions[i][index],d);
 					index++;
 				}
@@ -151,19 +161,10 @@ public class RunConfRix {
 				List<Double> mapKeys = new ArrayList<>(valuesOfv.keySet());
 			    Collections.sort(mapKeys);
 			    
-			    for(int d=0;d<bikeProblem.domainSizes[v];d++){
+			    for(int d=0;d<knowledgebase.domainSizes[v];d++){
 			    	int val_index = valuesOfv.get(mapKeys.get(d));
-			    	datasetGenerator.bikeConfigProblems[i].valueOrdering[v][d] = val_index; 
+			    	recommendationTasks.recomTasks[i].valueOrdering[v][d] = val_index; 
 			    }
-			   		    
-//				int variable = bikeProblem.hashmapIDs.get(x);
-//				int lowBoundary = bikeProblem.lowBoundaries[variable];
-//				int value = x - lowBoundary;
-//				
-//				int size = datasetGenerator.bikeConfigProblems[i].domainSizes[variable];
-//				//datasetGenerator.bikeConfigProblems[p].valueOrdering[variable] = new int[size];
-//				datasetGenerator.bikeConfigProblems[i].valueOrdering[variable][0] = value;
-//				datasetGenerator.bikeConfigProblems[i].valueOrdering[variable][value] = 0;
 			    
 			}
 		}
@@ -177,7 +178,7 @@ public class RunConfRix {
 
 		// WITHOUT USING COBARIX 
 		// eliminate the first problems solving time
-		datasetGenerator.bikeConfigProblems_copies[0][0].modelKB.getSolver().solve();
+		recommendationTasks.recomTasks_copies[0][0].modelKB.getSolver().solve();
 		
 		// Compared Value Ordering Heuristics
 		IntValueSelector valueorderingheuristics[]= new IntValueSelector[6];
@@ -213,17 +214,17 @@ public class RunConfRix {
 				for (int i=1;i<numberOfProblems;i++){
 					//if(j!=numberOfComparedHeuristics-1)
 					switch(j){
-						case 2: datasetGenerator.bikeConfigProblems_copies[index][i].modelKB.getSolver().setSearch(new ActivityBased(datasetGenerator.bikeConfigProblems_copies[index][i].vars));break;
-						case 3: varheuristics[3] =  new FirstFail(datasetGenerator.bikeConfigProblems_copies[index][i].modelKB); break;
-						case 4: varheuristics[4] =  new AntiFirstFail(datasetGenerator.bikeConfigProblems_copies[index][i].modelKB); break;
-						case 8: varheuristics[8] =  new InputOrder(datasetGenerator.bikeConfigProblems_copies[index][i].modelKB); break;
-						case 9: datasetGenerator.bikeConfigProblems_copies[index][i].modelKB.getSolver().setSearch( new DomOverWDeg(datasetGenerator.bikeConfigProblems_copies[index][i].vars, (long) 0.01, valueorderingheuristics[h])); break;
-						case 10: datasetGenerator.bikeConfigProblems_copies[index][i].modelKB.getSolver().setSearch( new ImpactBased(datasetGenerator.bikeConfigProblems_copies[index][i].vars, false)); break;
-						default: datasetGenerator.bikeConfigProblems_copies[index][i].seValOrdHeuristics(varheuristics[j],valueorderingheuristics[h]); break;
+						case 2: recommendationTasks.recomTasks_copies[index][i].modelKB.getSolver().setSearch(new ActivityBased(recommendationTasks.recomTasks_copies[index][i].vars));break;
+						case 3: varheuristics[3] =  new FirstFail(recommendationTasks.recomTasks_copies[index][i].modelKB); break;
+						case 4: varheuristics[4] =  new AntiFirstFail(recommendationTasks.recomTasks_copies[index][i].modelKB); break;
+						case 8: varheuristics[8] =  new InputOrder(recommendationTasks.recomTasks_copies[index][i].modelKB); break;
+						case 9: recommendationTasks.recomTasks_copies[index][i].modelKB.getSolver().setSearch( new DomOverWDeg(recommendationTasks.recomTasks_copies[index][i].vars, (long) 0.01, valueorderingheuristics[h])); break;
+						case 10: recommendationTasks.recomTasks_copies[index][i].modelKB.getSolver().setSearch( new ImpactBased(recommendationTasks.recomTasks_copies[index][i].vars, false)); break;
+						default: recommendationTasks.recomTasks_copies[index][i].seValOrdHeuristics(varheuristics[j],valueorderingheuristics[h]); break;
 							
 					}
 					
-					datasetGenerator.bikeConfigProblems_copies[index][i].modelKB.getSolver().solve();
+					recommendationTasks.recomTasks_copies[index][i].modelKB.getSolver().solve();
 					
 				}
 				index++;
@@ -245,8 +246,8 @@ public class RunConfRix {
 			// online spent time
 			long start3=System.nanoTime();
 			for (int i=0;i<numberOfProblems;i++){
-				datasetGenerator.bikeConfigProblems[i].setCOBARIXHeuristics(varheuristics[j]);
-				datasetGenerator.bikeConfigProblems[i].modelKB.getSolver().solve();
+				recommendationTasks.recomTasks[i].setCOBARIXHeuristics(varheuristics[j]);
+				recommendationTasks.recomTasks[i].modelKB.getSolver().solve();
 			}
 			long end3=System.nanoTime();
 			
@@ -257,11 +258,40 @@ public class RunConfRix {
 		System.out.println("STEP-8 is completed.");
 		
 		
+		// *********************************************************************
+		// STEP-9: CHECK ACCURACY
+		// *********************************************************************
+		// isTestAccuracy = true
+		int [][] recommendationsCobarix = new int [numberOfProblems][knowledgebase.numberOfVariables];
+		for (int i=0;i<numberOfProblems;i++){
+			for(int j=0;j<knowledgebase.numberOfVariables;j++)
+				recommendationsCobarix [i][j] = recommendationTasks.recomTasks[i].vars[j].getValue();
+		}
+		
+		float accuracy = recommendationTasks.getAccuracy(recommendationsCobarix);
+		System.out.println("Accuracy of COBARIX: "+ accuracy);
+		System.out.println("STEP-9 is completed.");
+		
+		
+		// *********************************************************************
+		// STEP-10: KNN - CHECK ACCURACY
+		// *********************************************************************
+		// isTestAccuracy = true
+		int [] recommendationsKNN = new int [numberOfProblems];
+		for (int i=0;i<numberOfProblems;i++){
+			int [] similars = KNN.getKNN(3, recommendationTasks.reqs[i], knowledgebase.purchases, knowledgebase.kb);
+			int recommendedItem = KNN.aggregateProductID(similars, recommendationTasks);
+			recommendationsKNN [i] = recommendedItem;
+		}
+		
+		float accuracy_knn = recommendationTasks.getAccuracy(recommendationsKNN);
+		System.out.println("Accuracy of KNN: "+ accuracy_knn);
+		System.out.println("STEP-10 is completed.");
+		
+		
+		
 		System.out.println("All steps are completed.");
 		
 	}
-	
-	
-	
 	
 }
