@@ -1,4 +1,4 @@
-package at.tugraz.ist;
+package at.tugraz.ist.cobarix;
 
 import static org.chocosolver.solver.search.strategy.Search.intVarSearch;
 
@@ -14,28 +14,28 @@ import org.chocosolver.solver.variables.IntVar;
 
 import at.tugraz.ist.fileOperations.WriteToFile;
 
-public class CPwithREQs {
+public class HistoricalTransactions {
 
     int [][] reqs;
     int numberOfvariables= 34;
     double requirementRate = 0.1;
-    CP [] bikeConfigProblems; 
-    CP [][] bikeConfigProblems_copies; 
+    Knowledgebase [] bikeConfigProblems; 
+    Knowledgebase [][] bikeConfigProblems_copies; 
     
-    public CPwithREQs(){}
+    public HistoricalTransactions(){}
     
 	public int[][] generateDataset (int numberofReqs, int solnSize, String inputFile, String outputFolder, boolean istype2,int numberOfComparedHeuristics)
 	{
-		bikeConfigProblems = new CP[numberofReqs];
-		bikeConfigProblems_copies = new CP[numberOfComparedHeuristics][numberofReqs];
+		bikeConfigProblems = new Knowledgebase[numberofReqs];
+		bikeConfigProblems_copies = new Knowledgebase[numberOfComparedHeuristics][numberofReqs];
 		reqs = new int[numberofReqs][34];
 		int problemIndex = solnSize;
 		
 		
 		for (int i=0;i<numberofReqs;i++){
-			bikeConfigProblems[i] = new CP();
+			bikeConfigProblems[i] = new Knowledgebase();
 			for(int j=0;j<numberOfComparedHeuristics;j++){
-				bikeConfigProblems_copies[j][i] = new CP();
+				bikeConfigProblems_copies[j][i] = new Knowledgebase();
 			}
 			
 			

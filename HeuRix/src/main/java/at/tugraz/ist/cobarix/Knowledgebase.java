@@ -1,4 +1,4 @@
-package at.tugraz.ist;
+package at.tugraz.ist.cobarix;
 
 import static org.chocosolver.solver.search.strategy.Search.intVarSearch;
 
@@ -16,6 +16,8 @@ import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.search.strategy.selectors.values.IntDomainRandom;
 import org.chocosolver.solver.search.strategy.selectors.values.IntValueSelector;
 import org.chocosolver.solver.search.strategy.selectors.variables.InputOrder;
+import org.chocosolver.solver.search.strategy.selectors.variables.Largest;
+import org.chocosolver.solver.search.strategy.selectors.variables.Smallest;
 import org.chocosolver.solver.search.strategy.selectors.variables.VariableSelector;
 import org.chocosolver.solver.variables.IntVar;
 import org.chocosolver.util.tools.ArrayUtils;
@@ -25,7 +27,7 @@ import at.tugraz.ist.knowledgebases.KB;
 
 // https://www.itu.dk/research/cla/externals/clib/bike2.cp
 
-public class CP {
+public class Knowledgebase {
 	
 	
 	KB kb = new Bike2KB();
@@ -37,9 +39,11 @@ public class CP {
 	HashMap<Integer,Integer> hashmapIDs = new HashMap<Integer,Integer>();  
 	int[] lowBoundaries = new int[numberOfVariables];  
 	int [][] valueOrdering = new int [numberOfVariables][];
+	//VariableSelector varSelector =  new InputOrder<>(modelKB);
+	//VariableSelector varSelector =  new Largest();
 	
 	
-	CP(){
+	Knowledgebase(){
 		
 		  int index = 0;
 	        for(int i=0;i<numberOfVariables;i++){
@@ -53,8 +57,7 @@ public class CP {
 	        		valueOrdering[i][j]=j;
 	        	}
 	        }
-	        
-	        
+	             
 	     // ADDITIONAL CONSTRAINTS
 			for(int i=0;i<numberOfVariables;i++){
 				int value = vars[i].getDomainSize();
@@ -72,7 +75,11 @@ public class CP {
 							modelKB.arithm(vars[i],">",avg),
 							modelKB.arithm(vars[i+2],"!=",vars[i])
 					);
-				
+				if (i<numberOfVariables-3)
+					modelKB.ifThen(
+							modelKB.arithm(vars[i],">",avg),
+							modelKB.arithm(vars[i+3],"!=",vars[i])
+					);
 				
 				
 				
@@ -85,6 +92,12 @@ public class CP {
 					modelKB.ifThen(
 							modelKB.arithm(vars[i],"<",avg),
 							modelKB.arithm(vars[i-2],"!=",vars[i])
+				);
+				
+				if (i>3)
+					modelKB.ifThen(
+							modelKB.arithm(vars[i],"<",avg),
+							modelKB.arithm(vars[i-3],"!=",vars[i])
 				);
 				
 				
@@ -189,16 +202,16 @@ public class CP {
 			}
 	}
 	
-	public void setCOBARIXHeuristics (){
+	public void setCOBARIXHeuristics (VariableSelector variableSelector){
 		
 		SedasValueOrdering valueOrder = new SedasValueOrdering(valueOrdering);
-		VariableSelector varSelector =  new InputOrder<>(modelKB);
+		//VariableSelector varSelector =  new InputOrder<>(modelKB);
 		IntValueSelector valueSelector = valueOrder;
 		
 	     
 		modelKB.getSolver().setSearch(intVarSearch(
                 
-				varSelector,
+				variableSelector,
                 // selects the smallest domain value (lower bound)
 				 
 				valueSelector,
@@ -209,15 +222,15 @@ public class CP {
 		
 	}
 	
-	public void seValOrdHeuristics (IntValueSelector valueOrder){
+	public void seValOrdHeuristics (VariableSelector variableSelector, IntValueSelector valueOrder){
 		
-		VariableSelector varSelector =  new InputOrder<>(modelKB);
+		//VariableSelector varSelector =  new InputOrder<>(modelKB);
 		IntValueSelector valueSelector = valueOrder;
 		
 	     
 		modelKB.getSolver().setSearch(intVarSearch(
                 
-				varSelector,
+				variableSelector,
                 // selects the smallest domain value (lower bound)
 				 
 				valueSelector,

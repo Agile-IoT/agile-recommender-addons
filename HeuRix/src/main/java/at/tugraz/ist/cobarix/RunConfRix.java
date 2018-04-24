@@ -1,4 +1,4 @@
-package at.tugraz.ist;
+package at.tugraz.ist.cobarix;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -16,10 +16,15 @@ import org.chocosolver.solver.search.strategy.selectors.values.IntDomainMin;
 import org.chocosolver.solver.search.strategy.selectors.values.IntDomainRandom;
 import org.chocosolver.solver.search.strategy.selectors.values.IntDomainRandomBound;
 import org.chocosolver.solver.search.strategy.selectors.values.IntValueSelector;
+import org.chocosolver.solver.search.strategy.selectors.variables.*;
+import org.springframework.beans.factory.annotation.Autowired;
 
 public class RunConfRix {
 
+	@Autowired
 	public static void main (String [] args){
+		
+		
 		
 		// istype2 is not applying bitmap technique. so each var is stated with its value
 		boolean istype2 = false;
@@ -31,8 +36,8 @@ public class RunConfRix {
 		// *********************************************************************
 		// STEP-1: GENERATE SOLUTIONS (sample solutions of BikeConfig+user reqs)
 		// *********************************************************************
-		CP bikeProblem = new CP();
-		int solnSize= 10;
+		Knowledgebase bikeProblem = new Knowledgebase();
+		int solnSize= 20;
 		String solutionsFile = "Files/BikeConfigSolutions/Solutions_"+solnSize;
 		File file_soln = new File(solutionsFile);
 		if (file_soln.exists()) 
@@ -77,9 +82,9 @@ public class RunConfRix {
 		// *********************************************************************
 		// STEP-3: GENERATE NEW PROBLEMS 
 		// *********************************************************************
-		CPwithREQs datasetGenerator= new CPwithREQs();
-		int numberOfProblems= 10;
-		int numberOfComparedHeuristics = 7; 
+		HistoricalTransactions datasetGenerator= new HistoricalTransactions();
+		int numberOfProblems= 3;
+		int numberOfComparedHeuristics = 78; 
 		String outputDirectory =  "Files/BikeConfigDataset";
 		int [][] reqs = datasetGenerator.generateDataset(numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics);
 		System.out.println("STEP-3 is completed.");
@@ -109,7 +114,8 @@ public class RunConfRix {
 				}
 			}
 		}
-		System.out.println("STEP-4 is completed.");
+		long end_step4 =System.nanoTime();
+		System.out.println("STEP-4 is completed: "+(end_step4-start));
 		
 		// *********************************************************************
 		// STEP-5: FIND PREDICTIONS FOR EACH PROBLEM (array multiplication)
@@ -125,7 +131,8 @@ public class RunConfRix {
 			predictions[i] = predictionsForUser[0];
 		}
 		
-		System.out.println("STEP-5 is completed.");
+		long end_step5 =System.nanoTime();
+		System.out.println("STEP-5 is completed: "+(end_step5-end_step4));
 		
 		
 		// *********************************************************************
@@ -159,11 +166,9 @@ public class RunConfRix {
 //				datasetGenerator.bikeConfigProblems[i].valueOrdering[variable][value] = 0;
 			    
 			}
-			datasetGenerator.bikeConfigProblems[i].setCOBARIXHeuristics();
 		}
-		System.out.println("STEP-6 is completed.");
-		
 		long end =System.nanoTime();
+		System.out.println("STEP-6 is completed: "+(end-end_step5));
 		
 		// *********************************************************************
 		// STEP-7: SOLVE PROBLEMS USING BUILT-IN VALUE ORDERINGS
@@ -175,7 +180,7 @@ public class RunConfRix {
 		datasetGenerator.bikeConfigProblems_copies[0][0].modelKB.getSolver().solve();
 		
 		// Compared Value Ordering Heuristics
-		IntValueSelector [] valueorderingheuristics = new IntValueSelector[6];
+		IntValueSelector valueorderingheuristics[]= new IntValueSelector[6];
 		
 		 valueorderingheuristics[0] = new IntDomainMax();
 		 valueorderingheuristics[1] = new IntDomainMin();
@@ -183,19 +188,50 @@ public class RunConfRix {
 		 valueorderingheuristics[3] = new IntDomainMiddle(true);
 		 valueorderingheuristics[4] = new IntDomainRandom(1);
 		 valueorderingheuristics[5] = new IntDomainRandomBound(1);
+		 
+
+		VariableSelector [] varheuristics = new VariableSelector [13];
+		 varheuristics[0] = new Smallest();
+		 varheuristics[1] = new Largest();
+		 varheuristics[2] = null; //new ActivityBased<>();
+		 varheuristics[3] = null; //new FirstFail(null);
+		 varheuristics[4] = null; //new AntiFirstFail(null);
+		 varheuristics[5] = new Cyclic<>();
+		 varheuristics[6] = new MaxRegret();
+		 varheuristics[7] = new Occurrence<>();
+		 varheuristics[8] = null; // new InputOrder<>(null);
+		 varheuristics[9] = null; //new DomOverWeg();
+		 varheuristics[10] = null; //new ImpactBased();
+		 varheuristics[11] = new GeneralizedMinDomVarSelector();
+		 varheuristics[12] = new org.chocosolver.solver.search.strategy.selectors.variables.Random<>((long)0.011);
 		
-		
-		for (int j=0;j<numberOfComparedHeuristics;j++){
-			long start2=System.nanoTime();
-			for (int i=1;i<numberOfProblems;i++){
-				if(j!=numberOfComparedHeuristics-1)
-					datasetGenerator.bikeConfigProblems_copies[j][i].seValOrdHeuristics(valueorderingheuristics[j]);
-				datasetGenerator.bikeConfigProblems_copies[j][i].modelKB.getSolver().solve();
+		int index=0;
+		for (int j=0;j<varheuristics.length;j++){
+			
+			for(int h=0;h<valueorderingheuristics.length;h++){
+				long start2=System.nanoTime();
+				for (int i=1;i<numberOfProblems;i++){
+					//if(j!=numberOfComparedHeuristics-1)
+					switch(j){
+						case 2: datasetGenerator.bikeConfigProblems_copies[index][i].modelKB.getSolver().setSearch(new ActivityBased(datasetGenerator.bikeConfigProblems_copies[index][i].vars));break;
+						case 3: varheuristics[3] =  new FirstFail(datasetGenerator.bikeConfigProblems_copies[index][i].modelKB); break;
+						case 4: varheuristics[4] =  new AntiFirstFail(datasetGenerator.bikeConfigProblems_copies[index][i].modelKB); break;
+						case 8: varheuristics[8] =  new InputOrder(datasetGenerator.bikeConfigProblems_copies[index][i].modelKB); break;
+						case 9: datasetGenerator.bikeConfigProblems_copies[index][i].modelKB.getSolver().setSearch( new DomOverWDeg(datasetGenerator.bikeConfigProblems_copies[index][i].vars, (long) 0.01, valueorderingheuristics[h])); break;
+						case 10: datasetGenerator.bikeConfigProblems_copies[index][i].modelKB.getSolver().setSearch( new ImpactBased(datasetGenerator.bikeConfigProblems_copies[index][i].vars, false)); break;
+						default: datasetGenerator.bikeConfigProblems_copies[index][i].seValOrdHeuristics(varheuristics[j],valueorderingheuristics[h]); break;
+							
+					}
+					
+					datasetGenerator.bikeConfigProblems_copies[index][i].modelKB.getSolver().solve();
+					
+				}
+				index++;
+				long end2=System.nanoTime();
+				
+				long avgtime2 = ((end2-start2))/(numberOfProblems-1); 
+				System.out.println("WITH HEURISTIC#"+j+"-"+h+": "+ avgtime2);
 			}
-		
-			long end2=System.nanoTime();
-			long avgtime2 = ((end2-start2))/(numberOfProblems-1); 
-			System.out.println("WITH HEURISTIC#"+j+": "+ avgtime2);
 		}
 		
 		System.out.println("STEP-7 is completed.");
@@ -205,15 +241,18 @@ public class RunConfRix {
 		// STEP-8: SOLVE PROBLEMS USING COBARIX
 		// *********************************************************************
 		
-		// online spent time
-		long start3=System.nanoTime();
-		for (int i=0;i<numberOfProblems;i++){
-			datasetGenerator.bikeConfigProblems[i].modelKB.getSolver().solve();
+		for (int j=0;j<varheuristics.length;j++){
+			// online spent time
+			long start3=System.nanoTime();
+			for (int i=0;i<numberOfProblems;i++){
+				datasetGenerator.bikeConfigProblems[i].setCOBARIXHeuristics(varheuristics[j]);
+				datasetGenerator.bikeConfigProblems[i].modelKB.getSolver().solve();
+			}
+			long end3=System.nanoTime();
+			
+			long avgtime3 = ((end-start)+(end3-start3))/(numberOfProblems); 
+			System.out.println("WITH COBARIX: "+ (avgtime3));
 		}
-		long end3=System.nanoTime();
-		
-		long avgtime3 = ((end-start)+(end3-start3))/numberOfProblems; 
-		System.out.println("WITH COBARIX: "+ (avgtime3));
 		
 		System.out.println("STEP-8 is completed.");
 		

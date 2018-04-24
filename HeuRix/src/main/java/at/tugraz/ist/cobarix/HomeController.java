@@ -1,4 +1,4 @@
-package at.tugraz.ist;
+package at.tugraz.ist.cobarix;
 
 import java.text.DateFormat;
 import java.util.Date;

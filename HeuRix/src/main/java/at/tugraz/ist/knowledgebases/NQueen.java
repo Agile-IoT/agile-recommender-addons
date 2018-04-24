@@ -1,4 +1,4 @@
-package at.tugraz.ist;
+package at.tugraz.ist.knowledgebases;
 
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Solution;
