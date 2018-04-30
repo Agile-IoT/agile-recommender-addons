@@ -236,22 +236,26 @@ public class Knowledgebase {
 	
 	public void setCOBARIXHeuristics (VariableSelector variableSelector){
 		
-		SedasValueOrdering valueOrder = new SedasValueOrdering(valueOrdering);
+		SedasValueOrdering myValueOrder = new SedasValueOrdering(valueOrdering, kb.getDomains());
 		//VariableSelector varSelector =  new InputOrder<>(modelKB);
-		IntValueSelector valueSelector = valueOrder;
 		
 	     
 		modelKB.getSolver().setSearch(intVarSearch(
-                
-				variableSelector,
-                // selects the smallest domain value (lower bound)
-				 
-				valueSelector,
-               
-                // variables to branch on
-				vars
+						variableSelector,
+						myValueOrder,
+						vars	
 		));
 		
+//		pckb.modelKB.getSolver().setSearch(           
+//	              Search.intVarSearch(
+//	               getVariableSelector(heuristicCounter / valueSelectors.length, pckb.modelKB),
+//	               valueSelectors[heuristicCounter % valueSelectors.length],
+//	               pckb.getVars()[0], pckb.getVars()[16],  pckb.getVars()[18], pckb.getVars()[19]),
+//	              Search.intVarSearch(
+//	                getVariableSelector(heuristicCounter / valueSelectors.length, pckb.modelKB),
+//	                valueSelectors[0 % valueSelectors.length],
+//	                pckb.getVars()[15], pckb.getVars()[21])
+//	             );
 	}
 	
 	public void seValOrdHeuristics (VariableSelector variableSelector, IntValueSelector valueOrder){

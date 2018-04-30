@@ -24,29 +24,33 @@ public class RecommendationTasks {
   
     int numberOfvariables;
     double requirementRate = 0.1;
-    Knowledgebase [] recomTasks; 
+    Knowledgebase [][] recomTasks; 
     Knowledgebase [][] recomTasks_copies; 
     
     public RecommendationTasks(int numberOfvariables){
     	this.numberOfvariables =  numberOfvariables;
     }
     
-    public int[][] generateDataset_fromFile(int numberOfVars, int [][]histTransactions, int numberofReqs,int numberOfComparedHeuristics){
+    public int[][] generateDataset_fromFile(int numberOfVars, int [][]histTransactions, int numberofReqs,int numberOfComparedHeuristics,int numberOfVarOrdHeuristics){
     	this.numberofReqs = numberofReqs;
-		recomTasks = new Knowledgebase[numberofReqs];
+		recomTasks = new Knowledgebase[numberOfVarOrdHeuristics][numberofReqs];
 		
 		
 		recomTasks_copies = new Knowledgebase[numberOfComparedHeuristics][numberofReqs];
 		reqs = new int[numberofReqs][numberOfVars];
 		
 		for (int i=0;i<numberofReqs;i++){
-			recomTasks[i] = new Knowledgebase(new CameraKB());
+			
+			for(int j=0;j<numberOfVarOrdHeuristics;j++){
+				recomTasks[j][i] = new Knowledgebase(new CameraKB());
+			}
 			
 			for(int j=0;j<numberOfComparedHeuristics;j++){
 				recomTasks_copies[j][i] = new Knowledgebase(new CameraKB());
 			}
 			
-			for(int j=0;j<3;j++){
+			// TAKE FIRST TWO
+			for(int j=0;j<2;j++){
 				reqs[i][j] = histTransactions[i][j];
 			}
 		} 
@@ -55,10 +59,10 @@ public class RecommendationTasks {
     }
     
     
-	public int[][] generateDataset (int numberOfVars, int numberofReqs, int solnSize, String inputFile, String outputFolder, boolean istype2,int numberOfComparedHeuristics)
+	public int[][] generateDataset (int numberOfVars, int numberofReqs, int solnSize, String inputFile, String outputFolder, boolean istype2,int numberOfComparedHeuristics,int numberOfVarOrdHeuristics)
 	{
 		this.numberofReqs = numberofReqs;
-		recomTasks = new Knowledgebase[numberofReqs];
+		recomTasks = new Knowledgebase[numberOfVarOrdHeuristics][numberofReqs];
 		
 		recomTasks_copies = new Knowledgebase[numberOfComparedHeuristics][numberofReqs];
 		reqs = new int[numberofReqs][numberOfVars];
@@ -66,7 +70,10 @@ public class RecommendationTasks {
 		
 		
 		for (int i=0;i<numberofReqs;i++){
-			recomTasks[i] = new Knowledgebase(new Bike2KB());
+			
+			for(int j=0;j<numberOfVarOrdHeuristics;j++){
+				recomTasks[j][i] = new Knowledgebase(new CameraKB());
+			}
 			for(int j=0;j<numberOfComparedHeuristics;j++){
 				recomTasks_copies[j][i] = new Knowledgebase(new Bike2KB());
 			}
@@ -107,7 +114,7 @@ public class RecommendationTasks {
 			
 			// GENERATE A USERS REQ
 			//List<String> lines = generateREQSforAProblem(i,istype2);
-			reqs[i] = generateREQSforAProblem(i,istype2,numberOfComparedHeuristics);
+			reqs[i] = generateREQSforAProblem(i,istype2,numberOfComparedHeuristics,numberOfVarOrdHeuristics);
 			
 			
 //			// FILE OPERATIONS
@@ -133,7 +140,7 @@ public class RecommendationTasks {
 		
 	}
 
-	public int [] generateREQSforAProblem (int index, boolean isType2, int numberOfComparedHeuristics){
+	public int [] generateREQSforAProblem (int index, boolean isType2, int numberOfComparedHeuristics,int numberOfVarOrdHeuristics){
 		
 		int [] reqs = new int[numberOfvariables];
 		List<String> lines = new ArrayList<String>();
@@ -141,15 +148,18 @@ public class RecommendationTasks {
 		// Generate random user requirements
 		for (int t=0;t<numberOfvariables;t++){
 			
-			int size = recomTasks[index].domainSizes[t];
+			int size = recomTasks[0][index].domainSizes[t];
 			int random = -1;
 			
 			// DECIDE TO INITIATE THIS VAR OR NOT
 			if(Math.random()<requirementRate){
 				random = (int) (Math.random()*size); // for ex: random=5
-				recomTasks[index].modelKB.arithm(recomTasks[index].vars[t],"=",random).post();
+				//recomTasks[index].modelKB.arithm(recomTasks[index].vars[t],"=",random).post();
 				
-			
+				for(int j=0;j<numberOfVarOrdHeuristics;j++){
+					recomTasks[j][index].modelKB.arithm(recomTasks[j][index].vars[t],"=",random).post();
+				}
+				
 				for(int j=0;j<numberOfComparedHeuristics;j++){
 					recomTasks_copies[j][index].modelKB.arithm(recomTasks_copies[j][index].vars[t],"=",random).post();
 				}
@@ -186,31 +196,34 @@ public class RecommendationTasks {
 		return reqs;		
 	}
 	
-	public float getAccuracy(int [][] recommendations){
+	public float getAccuracy(int [][] recommendations, int index, Knowledgebase kb){
 		float accuracy = 0;
 		
-		for(int j=0;j<numberofReqs;j++){
-			int result =1;
-			
-			for(int i=0;i<numberOfvariables;i++){
-				if(recomTasks[0].purchases[j][i] != recommendations[j][i]){
-					result=0;
-					break;
+		//for (int h=0;h<numberOfVarOrdHeuristics;h++){
+			for(int j=0;j<numberofReqs;j++){
+				int result =1;
+				
+				for(int i=0;i<numberOfvariables;i++){
+					if(kb.purchases[j][i] != recommendations[j][i]){
+						result=0;
+						break;
+					}
 				}
+				accuracy += result;
 			}
-			accuracy += result;
-		}
+			accuracy = accuracy/numberofReqs;
+		//}
 		
-		return accuracy/numberofReqs;
+		return accuracy;
 	}
 
-	public float getAccuracy(int [] recommendedIDs){
+	public float getAccuracy(int [] recommendedIDs,Knowledgebase kb){
 		float accuracy = 0;
 		
 		for(int j=0;j<numberofReqs;j++){
 			int result =1;
 			
-			if(recomTasks[0].purchaseIDs[j] != recommendedIDs[j]){
+			if(kb.purchaseIDs[j] != recommendedIDs[j]){
 					result=0;
 					break;
 				}

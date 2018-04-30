@@ -33,6 +33,7 @@ public class RunConfRix {
 		// istype2 is not applying bitmap technique. so each var is stated with its value
 		boolean istype2 = false;
 		boolean isTestAccuracy = true;
+		VariableSelector [] varheuristics = new VariableSelector [13];
 		
 		// *********************************************************************
 		// ****************       OFFLINE PHASE            *********************
@@ -97,9 +98,9 @@ public class RunConfRix {
 		String outputDirectory =  "Files/ConfigDataset";
 		int [][] reqs;
 		if(isTestAccuracy)
-			reqs = recommendationTasks.generateDataset_fromFile(numberOfVariables,histTransactions, numberOfProblems, numberOfComparedHeuristics);
+			reqs = recommendationTasks.generateDataset_fromFile(numberOfVariables,histTransactions, numberOfProblems, numberOfComparedHeuristics,varheuristics.length);
 		else
-			reqs = recommendationTasks.generateDataset(numberOfVariables,numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics);
+			reqs = recommendationTasks.generateDataset(numberOfVariables,numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics,varheuristics.length);
 		
 		System.out.println("STEP-3 is completed.");
 		
@@ -122,8 +123,8 @@ public class RunConfRix {
 			double minDist = 0;
 			for (int s=0;s<histTransactions.length;s++){
 				// NORMALIZE
-				int [] reqs_normalized= MinMaxNormalization.normalize(reqs[i], knowledgebase.vars);
-				int [] soln_normalized= MinMaxNormalization.normalize(histTransactions[s], knowledgebase.vars);
+				double [] reqs_normalized= MinMaxNormalization.normalize(reqs[i], knowledgebase.vars);
+				double [] soln_normalized= MinMaxNormalization.normalize(histTransactions[s], knowledgebase.vars);
 				//double dist = MF.euclidean_distance(reqs[i],solutions[s]);
 				// DISTANCE
 				double dist = MatrixFactorization.euclidean_distance(reqs_normalized,soln_normalized);
@@ -170,7 +171,9 @@ public class RunConfRix {
 			    
 			    for(int d=0;d<knowledgebase.domainSizes[v];d++){
 			    	int val_index = valuesOfv.get(mapKeys.get(d));
-			    	recommendationTasks.recomTasks[i].valueOrdering[v][d] = val_index; 
+			    	for (int h=0;h<varheuristics.length;h++){
+			    		recommendationTasks.recomTasks[h][i].valueOrdering[v][d] = val_index; 
+			    	}
 			    }
 			    
 			}
@@ -198,7 +201,7 @@ public class RunConfRix {
 		 valueorderingheuristics[5] = new IntDomainRandomBound(1);
 		 
 
-		VariableSelector [] varheuristics = new VariableSelector [13];
+	
 		 varheuristics[0] = new Smallest();
 		 varheuristics[1] = new Largest();
 		 varheuristics[2] = null; //new ActivityBased<>();
@@ -253,13 +256,13 @@ public class RunConfRix {
 			// online spent time
 			long start3=System.nanoTime();
 			for (int i=0;i<numberOfProblems;i++){
-				recommendationTasks.recomTasks[i].setCOBARIXHeuristics(varheuristics[j]);
-				recommendationTasks.recomTasks[i].modelKB.getSolver().solve();
+				recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics(varheuristics[0]);
+				recommendationTasks.recomTasks[j][i].modelKB.getSolver().solve();
 			}
 			long end3=System.nanoTime();
 			
 			long avgtime3 = ((end-start)+(end3-start3))/(numberOfProblems); 
-			System.out.println("WITH COBARIX: "+ (avgtime3));
+			System.out.println("varheuristics ID: "+j+", WITH COBARIX: "+ (avgtime3));
 		}
 		
 		System.out.println("STEP-8 is completed.");
@@ -272,13 +275,17 @@ public class RunConfRix {
 			// *********************************************************************
 			// isTestAccuracy = true
 			int [][] recommendationsCobarix = new int [numberOfProblems][knowledgebase.numberOfVariables];
-			for (int i=0;i<numberOfProblems;i++){
-				for(int j=0;j<knowledgebase.numberOfVariables;j++)
-					recommendationsCobarix [i][j] = recommendationTasks.recomTasks[i].vars[j].getValue();
+			for (int h=0;h<varheuristics.length;h++){
+				for (int i=0;i<numberOfProblems;i++){
+					for(int j=0;j<knowledgebase.numberOfVariables;j++)
+						recommendationsCobarix [i][j] = recommendationTasks.recomTasks[h][i].vars[j].getValue();
+				}
+				
+				float accuracy = recommendationTasks.getAccuracy(recommendationsCobarix,h,knowledgebase);
+				System.out.println("varheuristics ID: "+h+"Accuracy of COBARIX: "+ accuracy);
 			}
 			
-			float accuracy = recommendationTasks.getAccuracy(recommendationsCobarix);
-			System.out.println("Accuracy of COBARIX: "+ accuracy);
+				
 			System.out.println("STEP-9 is completed.");
 			
 			
@@ -293,7 +300,7 @@ public class RunConfRix {
 				recommendationsKNN [i] = recommendedItem;
 			}
 			
-			float accuracy_knn = recommendationTasks.getAccuracy(recommendationsKNN);
+			float accuracy_knn = recommendationTasks.getAccuracy(recommendationsKNN,knowledgebase);
 			System.out.println("Accuracy of KNN: "+ accuracy_knn);
 			System.out.println("STEP-10 is completed.");
 		

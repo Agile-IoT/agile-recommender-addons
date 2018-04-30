@@ -17,20 +17,16 @@ public class KNN {
 	
 	public static int[] getKNN(int n, int []req, int [][]users, KB knowledgebase){
 		
-		int [] reqs_normalized= MinMaxNormalization.normalize(req, knowledgebase.getVars());
+		double [] reqs_normalized= MinMaxNormalization.normalize(req, knowledgebase.getVars());
 		HashMap<Double, Integer> hmap = new HashMap<Double, Integer>();
 		
 		for (int i=0; i<users.length;i++){
-			int [] user_normalized= MinMaxNormalization.normalize(users[i], knowledgebase.getVars());
+			double [] user_normalized= MinMaxNormalization.normalize(users[i], knowledgebase.getVars());
 			
 			// DISTANCE
 			double dist = MatrixFactorization.euclidean_distance(reqs_normalized,user_normalized);
+			hmap.put(dist, i);
 			
-			int minDist = 0;
-			if(i!=0 && dist<minDist){
-				//minDist = dist;
-				hmap.put(dist, i);
-			}
 		}
 		
 		int[] similarIndexes = new int[n];
@@ -40,7 +36,7 @@ public class KNN {
         Iterator iterator2 = set2.iterator();
         int count =0;
         while(count<n) {
-        	similarIndexes[n]= (int) ((Map.Entry)iterator2.next()).getValue();
+        	similarIndexes[count]= (int) ((Map.Entry)iterator2.next()).getValue();
         	count++;
         }
 		

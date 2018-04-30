@@ -16,5 +16,7 @@ public interface KB {
 	
 	public void defineVariables();
 	public void defineConstraints();
+	
+	public int [][] getDomains();
 
 }

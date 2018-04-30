@@ -6,14 +6,14 @@ import org.chocosolver.solver.variables.IntVar;
 public class MinMaxNormalization {
 
 	
-	public static int [] normalize(int [] arrayToNormalize, IntVar[] vars){
+	public static double [] normalize(int [] arrayToNormalize, IntVar[] vars){
 		
-		int [] normalized = new int[arrayToNormalize.length];
+		double [] normalized = new double[arrayToNormalize.length];
 		
 		for(int i=0;i<vars.length;i++){
-			int min = vars[i].getLB();
-			int max = vars[i].getUB();
-			normalized[i] = (arrayToNormalize[i]-min)/(max-min);
+			double min = vars[i].getLB();
+			double max = vars[i].getUB();
+			normalized[i] = (double)((arrayToNormalize[i]-min)/(max-min));
 		}
 		
 		return normalized;

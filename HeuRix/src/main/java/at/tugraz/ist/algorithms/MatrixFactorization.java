@@ -77,7 +77,7 @@ public class MatrixFactorization {
 	        return temp;
 	    }
 	
-	public static double euclidean_distance(int[] a, int[] b) {
+	public static double euclidean_distance(double[] a, double[] b) {
         double diff_square_sum = 0.0;
         for (int i = 0; i < a.length; i++) {
         	if(a[i]!=-1)

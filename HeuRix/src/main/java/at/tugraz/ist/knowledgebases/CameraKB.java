@@ -9,6 +9,7 @@ public class CameraKB implements KB{
 	Model modelKB = new Model("CameraConfigurationProblem");
 	int numberOfVariables = 10;
 	IntVar[] vars = new IntVar[numberOfVariables];
+	int [][] domains = new int [numberOfVariables][];
 	
 	public CameraKB(){
 		// 10 variables
@@ -18,17 +19,28 @@ public class CameraKB implements KB{
 	}
 	
 	public void defineVariables (){
+		
+		domains[0] = new int[]{61, 102, 123, 142, 162, 241, 242, 208, 209, 243, 363};
+		domains[1] = new int[]{18, 25, 27, 30, 32};
+		domains[2] = new int[]{0, 1};
+		domains[3] = new int[]{0, 1};
+		domains[4] = new int[]{0, 1};
+		domains[5] = new int[]{0, 1};
+		domains[6] = new int[]{0, 1, 2, 3, 4, 5};
+		domains[7] = new int[]{20, 30, 35, 50, 58, 78};
+		domains[8] = new int[]{445, 455, 460, 470, 475, 505, 530, 535, 560, 675, 700, 765, 840, 850, 860, 980, 1405};
+		domains[9] = new int[]{189, 399, 400, 469, 479, 499, 579, 581, 609, 659, 669, 749, 1129, 1649, 2149, 2329, 2749, 3229, 5219};
     
-        vars[0] = this.modelKB.intVar("Resolution", new int[]{61, 102, 123, 142, 162, 241, 242, 208, 209, 243, 363});
-        vars[1] = this.modelKB.intVar("Display", new int[]{18, 25, 27, 30, 32});
-        vars[2] = this.modelKB.intVar("Touchscreen", new int[]{0, 1});
-        vars[3] = this.modelKB.intVar("WiFi", new int[]{0, 1});
-        vars[4] = this.modelKB.intVar("NFC", new int[]{0, 1});
-        vars[5] = this.modelKB.intVar("GPS", new int[]{0, 1});
-        vars[6] = this.modelKB.intVar("Video", new int[]{0, 1, 2, 3, 4, 5});
-        vars[7] = this.modelKB.intVar("Zoom", new int[]{20, 30, 35, 50, 58, 78});
-        vars[8] = this.modelKB.intVar("Weight", new int[]{445, 455, 460, 470, 475, 505, 530, 535, 560, 675, 700, 765, 840, 850, 860, 980, 1405});
-        vars[9] = this.modelKB.intVar("Price", new int[]{189, 399, 400, 469, 479, 499, 579, 581, 609, 659, 669, 749, 1129, 1649, 2149, 2329, 2749, 3229, 5219});
+        vars[0] = this.modelKB.intVar("Resolution", domains[0]);
+        vars[1] = this.modelKB.intVar("Display", domains[1] );
+        vars[2] = this.modelKB.intVar("Touchscreen",  domains[2]);
+        vars[3] = this.modelKB.intVar("WiFi", domains[3] );
+        vars[4] = this.modelKB.intVar("NFC",  domains[4]);
+        vars[5] = this.modelKB.intVar("GPS",  domains[5]);
+        vars[6] = this.modelKB.intVar("Video", domains[6] );
+        vars[7] = this.modelKB.intVar("Zoom",  domains[7]);
+        vars[8] = this.modelKB.intVar("Weight", domains[8] );
+        vars[9] = this.modelKB.intVar("Price",  domains[9]);
        
 	}
 	public void defineConstraints() {
@@ -365,6 +377,12 @@ public class CameraKB implements KB{
 	public void setVars(IntVar[] v) {
 		// TODO Auto-generated method stub
 		vars=v;
+	}
+
+	@Override
+	public int[][] getDomains() {
+		// TODO Auto-generated method stub
+		return domains;
 	}
 	
 
