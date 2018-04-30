@@ -23,6 +23,7 @@ import at.tugraz.ist.algorithms.MatrixFactorization;
 import at.tugraz.ist.algorithms.MinMaxNormalization;
 import at.tugraz.ist.algorithms.KNN;
 import at.tugraz.ist.knowledgebases.Bike2KB;
+import at.tugraz.ist.knowledgebases.CameraKB;
 
 public class RunConfRix {
 
@@ -31,8 +32,7 @@ public class RunConfRix {
 		
 		// istype2 is not applying bitmap technique. so each var is stated with its value
 		boolean istype2 = false;
-		boolean isTestAccuracy = false;
-		String cameraFile = "Files/ConfigSolutions/CameraUserReqs.data";
+		boolean isTestAccuracy = true;
 		
 		// *********************************************************************
 		// ****************       OFFLINE PHASE            *********************
@@ -41,18 +41,22 @@ public class RunConfRix {
 		// *********************************************************************
 		// STEP-1: GENERATE SOLUTIONS (sample solutions of BikeConfig+user reqs)
 		// *********************************************************************
-		Knowledgebase knowledgebase = new Knowledgebase();
+		Knowledgebase knowledgebase = new Knowledgebase(new CameraKB());
 		int solnSize= 20;
-		String solutionsFile = "Files/ConfigSolutions/Solutions_"+solnSize;
+		String solutionsFile = "Files/ConfigSolutions/Solutions_"+System.currentTimeMillis();
+		String cameraFile = "Files/CameraDataset/CameraUserReqs.data";
+		
 		File file_soln = new File(solutionsFile);
 		if (file_soln.exists()) 
 			file_soln.delete();
 		int [][] histTransactions;
 		if(isTestAccuracy)
-			histTransactions= knowledgebase.readHistoricalTransactions(cameraFile);
+			histTransactions= knowledgebase.readHistoricalTransactions(cameraFile,solutionsFile);
 		
 		else
 			histTransactions = knowledgebase.generateHistoricalTransactions(solnSize, solutionsFile,istype2);
+		
+		int numberOfVariables = histTransactions[0].length;
 		System.out.println("STEP-1 is completed.");
 		
 		
@@ -87,11 +91,16 @@ public class RunConfRix {
 		// *********************************************************************
 		// STEP-3: GENERATE/READ NEW PROBLEMS 
 		// *********************************************************************
-		RecommendationTasks recommendationTasks= new RecommendationTasks();
-		int numberOfProblems= 3;
+		RecommendationTasks recommendationTasks= new RecommendationTasks(knowledgebase.numberOfVariables);
+		int numberOfProblems= 2;
 		int numberOfComparedHeuristics = 78; 
 		String outputDirectory =  "Files/ConfigDataset";
-		int [][] reqs = recommendationTasks.generateDataset(numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics);
+		int [][] reqs;
+		if(isTestAccuracy)
+			reqs = recommendationTasks.generateDataset_fromFile(numberOfVariables,histTransactions, numberOfProblems, numberOfComparedHeuristics);
+		else
+			reqs = recommendationTasks.generateDataset(numberOfVariables,numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics);
+		
 		System.out.println("STEP-3 is completed.");
 		
 
@@ -148,7 +157,6 @@ public class RunConfRix {
 		// *********************************************************************
 		// STEP-6: CONVERT PREDICTIONS TO VALUE ORDERINGS
 		// *********************************************************************
-		// TODO : update this part
 		for (int i=0;i<numberOfProblems;i++){
 			int index = 0;
 			for(int v=0;v<knowledgebase.numberOfVariables;v++){
@@ -157,7 +165,6 @@ public class RunConfRix {
 					valuesOfv.put(predictions[i][index],d);
 					index++;
 				}
-				
 				List<Double> mapKeys = new ArrayList<>(valuesOfv.keySet());
 			    Collections.sort(mapKeys);
 			    
@@ -258,37 +265,39 @@ public class RunConfRix {
 		System.out.println("STEP-8 is completed.");
 		
 		
-		// *********************************************************************
-		// STEP-9: CHECK ACCURACY
-		// *********************************************************************
-		// isTestAccuracy = true
-		int [][] recommendationsCobarix = new int [numberOfProblems][knowledgebase.numberOfVariables];
-		for (int i=0;i<numberOfProblems;i++){
-			for(int j=0;j<knowledgebase.numberOfVariables;j++)
-				recommendationsCobarix [i][j] = recommendationTasks.recomTasks[i].vars[j].getValue();
+		if(isTestAccuracy){
+			
+			// *********************************************************************
+			// STEP-9: ACCURACY OF COBARIX
+			// *********************************************************************
+			// isTestAccuracy = true
+			int [][] recommendationsCobarix = new int [numberOfProblems][knowledgebase.numberOfVariables];
+			for (int i=0;i<numberOfProblems;i++){
+				for(int j=0;j<knowledgebase.numberOfVariables;j++)
+					recommendationsCobarix [i][j] = recommendationTasks.recomTasks[i].vars[j].getValue();
+			}
+			
+			float accuracy = recommendationTasks.getAccuracy(recommendationsCobarix);
+			System.out.println("Accuracy of COBARIX: "+ accuracy);
+			System.out.println("STEP-9 is completed.");
+			
+			
+			// *********************************************************************
+			// STEP-10: ACCURACY OF KNN
+			// *********************************************************************
+			// isTestAccuracy = true
+			int [] recommendationsKNN = new int [numberOfProblems];
+			for (int i=0;i<numberOfProblems;i++){
+				int [] similars = KNN.getKNN(3, recommendationTasks.reqs[i], knowledgebase.purchases, knowledgebase.kb);
+				int recommendedItem = KNN.aggregateProductID(similars, recommendationTasks);
+				recommendationsKNN [i] = recommendedItem;
+			}
+			
+			float accuracy_knn = recommendationTasks.getAccuracy(recommendationsKNN);
+			System.out.println("Accuracy of KNN: "+ accuracy_knn);
+			System.out.println("STEP-10 is completed.");
+		
 		}
-		
-		float accuracy = recommendationTasks.getAccuracy(recommendationsCobarix);
-		System.out.println("Accuracy of COBARIX: "+ accuracy);
-		System.out.println("STEP-9 is completed.");
-		
-		
-		// *********************************************************************
-		// STEP-10: KNN - CHECK ACCURACY
-		// *********************************************************************
-		// isTestAccuracy = true
-		int [] recommendationsKNN = new int [numberOfProblems];
-		for (int i=0;i<numberOfProblems;i++){
-			int [] similars = KNN.getKNN(3, recommendationTasks.reqs[i], knowledgebase.purchases, knowledgebase.kb);
-			int recommendedItem = KNN.aggregateProductID(similars, recommendationTasks);
-			recommendationsKNN [i] = recommendedItem;
-		}
-		
-		float accuracy_knn = recommendationTasks.getAccuracy(recommendationsKNN);
-		System.out.println("Accuracy of KNN: "+ accuracy_knn);
-		System.out.println("STEP-10 is completed.");
-		
-		
 		
 		System.out.println("All steps are completed.");
 		

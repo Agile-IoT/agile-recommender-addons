@@ -32,20 +32,29 @@ import at.tugraz.ist.knowledgebases.KB;
 public class Knowledgebase {
 	
 	
-	KB kb = new Bike2KB();
-	int numberOfVariables= kb.getNumberOfVariables();
-	Model modelKB = kb.getModelKB();
-	IntVar[] vars = kb.getVars();
+	KB kb;
+	int numberOfVariables;
+	Model modelKB ;
+	IntVar[] vars ;
 	
-	int [] domainSizes= new int[numberOfVariables];
+	int [] domainSizes;
 	HashMap<Integer,Integer> hashmapIDs = new HashMap<Integer,Integer>();  
-	int[] lowBoundaries = new int[numberOfVariables];  
-	int [][] valueOrdering = new int [numberOfVariables][];
+	int[] lowBoundaries ;  
+	int [][] valueOrdering ;
 	
 	int [][] purchases;
 	int [] purchaseIDs;
 	
-	Knowledgebase(){
+	Knowledgebase(KB kb){
+		 this.kb = kb;
+		 numberOfVariables= kb.getNumberOfVariables(); 
+		 
+		 modelKB = kb.getModelKB();
+		 vars = kb.getVars();
+		 domainSizes= new int[numberOfVariables];
+		 lowBoundaries = new int[numberOfVariables]; 
+		 valueOrdering = new int [numberOfVariables][];
+		 
 		
 		  int index = 0;
 	        for(int i=0;i<numberOfVariables;i++){
@@ -109,18 +118,22 @@ public class Knowledgebase {
 	}
 	
 
-	public int [][] readHistoricalTransactions(String inputFile){
+	public int [][] readHistoricalTransactions(String inputFile, String outputFile){
 		
 		List<String> lines = ReadFile.readFile(inputFile);
 		purchases = new int [lines.size()][numberOfVariables];
+		purchaseIDs = new int [lines.size()];
 		
 		for(int i=0;i<lines.size();i++){
-			String [] parsed = lines.get(i).split(" ");
+			String [] parsed = lines.get(i).split(",");
 			for(int j=0;j<numberOfVariables;j++){
 				purchases[i][j]= Integer.valueOf(parsed[j]);
 			}
-			purchaseIDs[i]= Integer.valueOf(parsed[numberOfVariables]);
+			purchaseIDs[i]= Integer.valueOf(parsed[parsed.length-2]);
+			writeSolutionToFile(outputFile,purchases[i],i,false);
 		}
+		
+		 
 		return purchases;
 		
 	}

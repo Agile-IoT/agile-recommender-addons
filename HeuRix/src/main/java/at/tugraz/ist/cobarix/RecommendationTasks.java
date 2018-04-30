@@ -14,6 +14,8 @@ import org.chocosolver.solver.variables.IntVar;
 
 import at.tugraz.ist.fileOperations.ReadFile;
 import at.tugraz.ist.fileOperations.WriteToFile;
+import at.tugraz.ist.knowledgebases.Bike2KB;
+import at.tugraz.ist.knowledgebases.CameraKB;
 
 public class RecommendationTasks {
 
@@ -25,25 +27,49 @@ public class RecommendationTasks {
     Knowledgebase [] recomTasks; 
     Knowledgebase [][] recomTasks_copies; 
     
-    public RecommendationTasks(){}
+    public RecommendationTasks(int numberOfvariables){
+    	this.numberOfvariables =  numberOfvariables;
+    }
     
-	public int[][] generateDataset (int numberofReqs, int solnSize, String inputFile, String outputFolder, boolean istype2,int numberOfComparedHeuristics)
+    public int[][] generateDataset_fromFile(int numberOfVars, int [][]histTransactions, int numberofReqs,int numberOfComparedHeuristics){
+    	this.numberofReqs = numberofReqs;
+		recomTasks = new Knowledgebase[numberofReqs];
+		
+		
+		recomTasks_copies = new Knowledgebase[numberOfComparedHeuristics][numberofReqs];
+		reqs = new int[numberofReqs][numberOfVars];
+		
+		for (int i=0;i<numberofReqs;i++){
+			recomTasks[i] = new Knowledgebase(new CameraKB());
+			
+			for(int j=0;j<numberOfComparedHeuristics;j++){
+				recomTasks_copies[j][i] = new Knowledgebase(new CameraKB());
+			}
+			
+			for(int j=0;j<3;j++){
+				reqs[i][j] = histTransactions[i][j];
+			}
+		} 
+		
+		return reqs;
+    }
+    
+    
+	public int[][] generateDataset (int numberOfVars, int numberofReqs, int solnSize, String inputFile, String outputFolder, boolean istype2,int numberOfComparedHeuristics)
 	{
 		this.numberofReqs = numberofReqs;
 		recomTasks = new Knowledgebase[numberofReqs];
-		numberOfvariables = recomTasks[0].numberOfVariables;
 		
 		recomTasks_copies = new Knowledgebase[numberOfComparedHeuristics][numberofReqs];
-		reqs = new int[numberofReqs][34];
+		reqs = new int[numberofReqs][numberOfVars];
 		int problemIndex = solnSize;
 		
 		
 		for (int i=0;i<numberofReqs;i++){
-			recomTasks[i] = new Knowledgebase();
+			recomTasks[i] = new Knowledgebase(new Bike2KB());
 			for(int j=0;j<numberOfComparedHeuristics;j++){
-				recomTasks_copies[j][i] = new Knowledgebase();
+				recomTasks_copies[j][i] = new Knowledgebase(new Bike2KB());
 			}
-			
 			
 //			// FILE OPERATIONS
 //			File problemFile = new File(outputFolder+"/Problem_"+i);
@@ -159,7 +185,6 @@ public class RecommendationTasks {
 		//return lines;		
 		return reqs;		
 	}
-	
 	
 	public float getAccuracy(int [][] recommendations){
 		float accuracy = 0;
