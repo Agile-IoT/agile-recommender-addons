@@ -341,6 +341,8 @@ public class CameraKB implements KB{
 	
 		Constraint c_aggAll = this.modelKB.or(c_agg1,c_agg11,c_agg21,c_agg31,c_agg41,c_agg51,c_agg61,c_agg71,c_agg81,c_agg91,
 											 c_agg01,c_agg110,c_agg210,c_agg310,c_agg410,c_agg510,c_agg610,c_agg710,c_agg810,c_agg910);
+	
+		this.modelKB.post(c_aggAll);
 	}
 
 	@Override

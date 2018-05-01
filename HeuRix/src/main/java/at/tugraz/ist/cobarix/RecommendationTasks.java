@@ -27,6 +27,8 @@ public class RecommendationTasks {
     Knowledgebase [][] recomTasks; 
     Knowledgebase [][] recomTasks_copies; 
     
+    int numberOfVariablesInAReq = 2;
+    
     public RecommendationTasks(int numberOfvariables){
     	this.numberOfvariables =  numberOfvariables;
     }
@@ -37,21 +39,32 @@ public class RecommendationTasks {
 		
 		
 		recomTasks_copies = new Knowledgebase[numberOfComparedHeuristics][numberofReqs];
-		reqs = new int[numberofReqs][numberOfVars];
+		reqs = new int[numberofReqs][numberOfVariablesInAReq];
 		
 		for (int i=0;i<numberofReqs;i++){
-			
-			for(int j=0;j<numberOfVarOrdHeuristics;j++){
-				recomTasks[j][i] = new Knowledgebase(new CameraKB());
-			}
-			
-			for(int j=0;j<numberOfComparedHeuristics;j++){
-				recomTasks_copies[j][i] = new Knowledgebase(new CameraKB());
-			}
 			
 			// TAKE FIRST TWO
 			for(int j=0;j<2;j++){
 				reqs[i][j] = histTransactions[i][j];
+			}
+			
+			for(int j=0;j<numberOfVarOrdHeuristics;j++){
+				recomTasks[j][i] = new Knowledgebase(new CameraKB());
+				// TAKE FIRST TWO
+				for(int t=0;t<2;t++){
+					recomTasks[j][i].kb.getModelKB().arithm((IntVar)recomTasks[j][i].kb.getModelKB().getVar(t),"=",reqs[i][t]).post();
+					System.out.println("Problem-"+i+", Var :"+t+"= "+reqs[i][t]);
+				}
+				
+			}
+			
+			for(int j=0;j<numberOfComparedHeuristics;j++){
+				recomTasks_copies[j][i] = new Knowledgebase(new CameraKB());
+				
+				// TAKE FIRST TWO
+				for(int t=0;t<2;t++){
+					recomTasks_copies[j][i].kb.getModelKB().arithm((IntVar)recomTasks_copies[j][i].kb.getModelKB().getVar(t),"=",reqs[i][t]).post();
+				}
 			}
 		} 
 		
@@ -65,7 +78,7 @@ public class RecommendationTasks {
 		recomTasks = new Knowledgebase[numberOfVarOrdHeuristics][numberofReqs];
 		
 		recomTasks_copies = new Knowledgebase[numberOfComparedHeuristics][numberofReqs];
-		reqs = new int[numberofReqs][numberOfVars];
+		reqs = new int[numberofReqs][numberOfVariablesInAReq];
 		int problemIndex = solnSize;
 		
 		
@@ -145,6 +158,7 @@ public class RecommendationTasks {
 		int [] reqs = new int[numberOfvariables];
 		List<String> lines = new ArrayList<String>();
 		int itemIndex = 0;
+		int count =0;
 		// Generate random user requirements
 		for (int t=0;t<numberOfvariables;t++){
 			
@@ -152,16 +166,17 @@ public class RecommendationTasks {
 			int random = -1;
 			
 			// DECIDE TO INITIATE THIS VAR OR NOT
-			if(Math.random()<requirementRate){
+			if(Math.random()<requirementRate && count<numberOfVariablesInAReq){
+				count++;
 				random = (int) (Math.random()*size); // for ex: random=5
 				//recomTasks[index].modelKB.arithm(recomTasks[index].vars[t],"=",random).post();
 				
 				for(int j=0;j<numberOfVarOrdHeuristics;j++){
-					recomTasks[j][index].modelKB.arithm(recomTasks[j][index].vars[t],"=",random).post();
+					recomTasks[j][index].kb.getModelKB().arithm((IntVar)recomTasks[j][index].kb.getModelKB().getVar(t),"=",random).post();
 				}
 				
 				for(int j=0;j<numberOfComparedHeuristics;j++){
-					recomTasks_copies[j][index].modelKB.arithm(recomTasks_copies[j][index].vars[t],"=",random).post();
+					recomTasks_copies[j][index].kb.getModelKB().arithm((IntVar)recomTasks_copies[j][index].kb.getModelKB().getVar(t),"=",random).post();
 				}
 				
 				// ENCODED SOLUTIONS

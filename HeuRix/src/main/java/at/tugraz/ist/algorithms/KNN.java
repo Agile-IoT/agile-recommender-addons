@@ -28,7 +28,6 @@ public class KNN {
 			hmap.put(dist, i);
 			
 		}
-		
 		int[] similarIndexes = new int[n];
 		Map<Double, Integer> map = new TreeMap<Double, Integer>(hmap); 
         //System.out.println("After Sorting:");

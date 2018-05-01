@@ -1,6 +1,5 @@
 package at.tugraz.ist.cobarix;
 
-import static org.chocosolver.solver.search.strategy.Search.intVarSearch;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -13,6 +12,7 @@ import java.util.List;
 import org.chocosolver.solver.Model;
 import org.chocosolver.solver.Solution;
 import org.chocosolver.solver.Solver;
+import org.chocosolver.solver.search.strategy.Search;
 import org.chocosolver.solver.search.strategy.selectors.values.IntDomainRandom;
 import org.chocosolver.solver.search.strategy.selectors.values.IntValueSelector;
 import org.chocosolver.solver.search.strategy.selectors.variables.InputOrder;
@@ -34,8 +34,8 @@ public class Knowledgebase {
 	
 	KB kb;
 	int numberOfVariables;
-	Model modelKB ;
-	IntVar[] vars ;
+	// kb.getModelKB() ;
+	IntVar[] varsNotInModel;
 	
 	int [] domainSizes;
 	HashMap<Integer,Integer> hashmapIDs = new HashMap<Integer,Integer>();  
@@ -49,8 +49,8 @@ public class Knowledgebase {
 		 this.kb = kb;
 		 numberOfVariables= kb.getNumberOfVariables(); 
 		 
-		 modelKB = kb.getModelKB();
-		 vars = kb.getVars();
+		 //kb.getModelKB() = kb.getkb.getModelKB()();
+		 varsNotInModel = kb.getVars();
 		 domainSizes= new int[numberOfVariables];
 		 lowBoundaries = new int[numberOfVariables]; 
 		 valueOrdering = new int [numberOfVariables][];
@@ -58,7 +58,7 @@ public class Knowledgebase {
 		
 		  int index = 0;
 	        for(int i=0;i<numberOfVariables;i++){
-	        	domainSizes[i] =vars[i].getDomainSize();
+	        	domainSizes[i] =kb.getVars()[i].getDomainSize();
 	        	valueOrdering[i]= new int[domainSizes[i]] ;
 	        	for(int j=0;j<domainSizes[i];j++){
 	        		if(j==0)
@@ -70,49 +70,49 @@ public class Knowledgebase {
 	        }
 	             
 	     // ADDITIONAL CONSTRAINTS
-			for(int i=0;i<numberOfVariables;i++){
-				int value = vars[i].getDomainSize();
-				int minvalue = vars[i].getLB();
-				int maxvalue = vars[i].getUB();
-				
-				int avg = (maxvalue-minvalue)/2;
-				if (i<numberOfVariables-1)
-					modelKB.ifThen(
-							modelKB.arithm(vars[i],">",avg),
-							modelKB.arithm(vars[i+1],"!=",vars[i])
-					);
-				if (i<numberOfVariables-2)
-					modelKB.ifThen(
-							modelKB.arithm(vars[i],">",avg),
-							modelKB.arithm(vars[i+2],"!=",vars[i])
-					);
-				if (i<numberOfVariables-3)
-					modelKB.ifThen(
-							modelKB.arithm(vars[i],">",avg),
-							modelKB.arithm(vars[i+3],"!=",vars[i])
-					);
-				
-				
-				
-				if (i>1)
-					modelKB.ifThen(
-							modelKB.arithm(vars[i],"<",avg),
-							modelKB.arithm(vars[i-1],"!=",vars[i])
-					);
-				if (i>2)
-					modelKB.ifThen(
-							modelKB.arithm(vars[i],"<",avg),
-							modelKB.arithm(vars[i-2],"!=",vars[i])
-				);
-				
-				if (i>3)
-					modelKB.ifThen(
-							modelKB.arithm(vars[i],"<",avg),
-							modelKB.arithm(vars[i-3],"!=",vars[i])
-				);
-				
-				
-			}
+//			for(int i=0;i<numberOfVariables;i++){
+//				int value = kb.getVars()[i].getDomainSize();
+//				int minvalue = kb.getVars()[i].getLB();
+//				int maxvalue = kb.getVars()[i].getUB();
+//				
+//				int avg = (maxvalue-minvalue)/2;
+//				if (i<numberOfVariables-1)
+//					kb.getModelKB().ifThen(
+//							kb.getModelKB().arithm(kb.getVars()[i],">",avg),
+//							kb.getModelKB().arithm(kb.getVars()[i+1],"!=",kb.getVars()[i])
+//					);
+//				if (i<numberOfVariables-2)
+//					kb.getModelKB().ifThen(
+//							kb.getModelKB().arithm(kb.getVars()[i],">",avg),
+//							kb.getModelKB().arithm(kb.getVars()[i+2],"!=",kb.getVars()[i])
+//					);
+//				if (i<numberOfVariables-3)
+//					kb.getModelKB().ifThen(
+//							kb.getModelKB().arithm(kb.getVars()[i],">",avg),
+//							kb.getModelKB().arithm(kb.getVars()[i+3],"!=",kb.getVars()[i])
+//					);
+//				
+//				
+//				
+//				if (i>1)
+//					kb.getModelKB().ifThen(
+//							kb.getModelKB().arithm(kb.getVars()[i],"<",avg),
+//							kb.getModelKB().arithm(kb.getVars()[i-1],"!=",kb.getVars()[i])
+//					);
+//				if (i>2)
+//					kb.getModelKB().ifThen(
+//							kb.getModelKB().arithm(kb.getVars()[i],"<",avg),
+//							kb.getModelKB().arithm(kb.getVars()[i-2],"!=",kb.getVars()[i])
+//				);
+//				
+//				if (i>3)
+//					kb.getModelKB().ifThen(
+//							kb.getModelKB().arithm(kb.getVars()[i],"<",avg),
+//							kb.getModelKB().arithm(kb.getVars()[i-3],"!=",kb.getVars()[i])
+//				);
+//				
+//				
+//			}
 			
 
 	}
@@ -140,26 +140,26 @@ public class Knowledgebase {
 	
 	public int [][] generateHistoricalTransactions(int number, String outputFile, boolean istype2){
 		
-		 Solver solver = modelKB.getSolver();
+		 Solver solver = kb.getModelKB().getSolver();
 		 int counter = 0;
 		 int [][] solutions = new int [number][numberOfVariables];
 		 
-		 VariableSelector varSelector =  new InputOrder<>(modelKB);
+		 VariableSelector varselector =  new InputOrder<>(kb.getModelKB());
 		 IntValueSelector valueSelector = new IntDomainRandom(1);
 		 do{
-			 solver.setSearch(intVarSearch(
+			 solver.setSearch(Search.intVarSearch(
 		                
-					 varSelector,
+					 varselector,
 		               
 					 valueSelector,
 		               
-					 vars
+					 kb.getVars()
 				));
 			 
 			 solver.solve();
 			 solutions[counter] = new int [numberOfVariables];
 			 for(int i=0;i<numberOfVariables;i++)
-				 solutions[counter][i]=((IntVar)(modelKB.getVar(i))).getValue();
+				 solutions[counter][i]=((IntVar)(kb.getModelKB().getVar(i))).getValue();
 			 
 			 writeSolutionToFile(outputFile,solutions[counter],counter,istype2);
 			 counter++;
@@ -237,34 +237,34 @@ public class Knowledgebase {
 	public void setCOBARIXHeuristics (VariableSelector variableSelector){
 		
 		SedasValueOrdering myValueOrder = new SedasValueOrdering(valueOrdering, kb.getDomains());
-		//VariableSelector varSelector =  new InputOrder<>(modelKB);
+		//VariableSelector kb.getVars()elector =  new InputOrder<>(kb.getModelKB());
 		
 	     
-		modelKB.getSolver().setSearch(intVarSearch(
+		kb.getModelKB().getSolver().setSearch(Search.intVarSearch(
 						variableSelector,
 						myValueOrder,
-						vars	
+						kb.getVars()	
 		));
 		
-//		pckb.modelKB.getSolver().setSearch(           
-//	              Search.intVarSearch(
-//	               getVariableSelector(heuristicCounter / valueSelectors.length, pckb.modelKB),
+//		pckb.kb.getModelKB().getSolver().setSearch(           
+//	              Search.intkb.getVars()earch(
+//	               getVariableSelector(heuristicCounter / valueSelectors.length, pckb.kb.getModelKB()),
 //	               valueSelectors[heuristicCounter % valueSelectors.length],
-//	               pckb.getVars()[0], pckb.getVars()[16],  pckb.getVars()[18], pckb.getVars()[19]),
-//	              Search.intVarSearch(
-//	                getVariableSelector(heuristicCounter / valueSelectors.length, pckb.modelKB),
+//	               pckb.getkb.getVars()()[0], pckb.getkb.getVars()()[16],  pckb.getkb.getVars()()[18], pckb.getkb.getVars()()[19]),
+//	              Search.intkb.getVars()earch(
+//	                getVariableSelector(heuristicCounter / valueSelectors.length, pckb.kb.getModelKB()),
 //	                valueSelectors[0 % valueSelectors.length],
-//	                pckb.getVars()[15], pckb.getVars()[21])
+//	                pckb.getkb.getVars()()[15], pckb.getkb.getVars()()[21])
 //	             );
 	}
 	
 	public void seValOrdHeuristics (VariableSelector variableSelector, IntValueSelector valueOrder){
 		
-		//VariableSelector varSelector =  new InputOrder<>(modelKB);
+		//VariableSelector kb.getVars()elector =  new InputOrder<>(kb.getModelKB());
 		IntValueSelector valueSelector = valueOrder;
 		
 	     
-		modelKB.getSolver().setSearch(intVarSearch(
+		kb.getModelKB().getSolver().setSearch(Search.intVarSearch(
                 
 				variableSelector,
                 // selects the smallest domain value (lower bound)
@@ -272,7 +272,7 @@ public class Knowledgebase {
 				valueSelector,
                
                 // variables to branch on
-				vars
+				kb.getVars()
 		));
 		
 	}

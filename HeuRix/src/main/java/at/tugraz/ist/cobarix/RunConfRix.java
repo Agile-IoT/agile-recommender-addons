@@ -17,6 +17,7 @@ import org.chocosolver.solver.search.strategy.selectors.values.IntDomainRandom;
 import org.chocosolver.solver.search.strategy.selectors.values.IntDomainRandomBound;
 import org.chocosolver.solver.search.strategy.selectors.values.IntValueSelector;
 import org.chocosolver.solver.search.strategy.selectors.variables.*;
+import org.chocosolver.solver.variables.IntVar;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import at.tugraz.ist.algorithms.MatrixFactorization;
@@ -97,6 +98,8 @@ public class RunConfRix {
 		int numberOfComparedHeuristics = 78; 
 		String outputDirectory =  "Files/ConfigDataset";
 		int [][] reqs;
+		 
+		 // recommendationTasks.recomTasks[h][i].
 		if(isTestAccuracy)
 			reqs = recommendationTasks.generateDataset_fromFile(numberOfVariables,histTransactions, numberOfProblems, numberOfComparedHeuristics,varheuristics.length);
 		else
@@ -123,8 +126,8 @@ public class RunConfRix {
 			double minDist = 0;
 			for (int s=0;s<histTransactions.length;s++){
 				// NORMALIZE
-				double [] reqs_normalized= MinMaxNormalization.normalize(reqs[i], knowledgebase.vars);
-				double [] soln_normalized= MinMaxNormalization.normalize(histTransactions[s], knowledgebase.vars);
+				double [] reqs_normalized= MinMaxNormalization.normalize(reqs[i], knowledgebase.varsNotInModel);
+				double [] soln_normalized= MinMaxNormalization.normalize(histTransactions[s], knowledgebase.varsNotInModel);
 				//double dist = MF.euclidean_distance(reqs[i],solutions[s]);
 				// DISTANCE
 				double dist = MatrixFactorization.euclidean_distance(reqs_normalized,soln_normalized);
@@ -188,7 +191,7 @@ public class RunConfRix {
 
 		// WITHOUT USING COBARIX 
 		// eliminate the first problems solving time
-		recommendationTasks.recomTasks_copies[0][0].modelKB.getSolver().solve();
+		recommendationTasks.recomTasks_copies[0][0].kb.getModelKB().getSolver().solve();
 		
 		// Compared Value Ordering Heuristics
 		IntValueSelector valueorderingheuristics[]= new IntValueSelector[6];
@@ -224,17 +227,17 @@ public class RunConfRix {
 				for (int i=1;i<numberOfProblems;i++){
 					//if(j!=numberOfComparedHeuristics-1)
 					switch(j){
-						case 2: recommendationTasks.recomTasks_copies[index][i].modelKB.getSolver().setSearch(new ActivityBased(recommendationTasks.recomTasks_copies[index][i].vars));break;
-						case 3: varheuristics[3] =  new FirstFail(recommendationTasks.recomTasks_copies[index][i].modelKB); break;
-						case 4: varheuristics[4] =  new AntiFirstFail(recommendationTasks.recomTasks_copies[index][i].modelKB); break;
-						case 8: varheuristics[8] =  new InputOrder(recommendationTasks.recomTasks_copies[index][i].modelKB); break;
-						case 9: recommendationTasks.recomTasks_copies[index][i].modelKB.getSolver().setSearch( new DomOverWDeg(recommendationTasks.recomTasks_copies[index][i].vars, (long) 0.01, valueorderingheuristics[h])); break;
-						case 10: recommendationTasks.recomTasks_copies[index][i].modelKB.getSolver().setSearch( new ImpactBased(recommendationTasks.recomTasks_copies[index][i].vars, false)); break;
+						case 2: recommendationTasks.recomTasks_copies[index][i].kb.getModelKB().getSolver().setSearch(new ActivityBased(recommendationTasks.recomTasks_copies[index][i].kb.getVars()));break;
+						case 3: varheuristics[3] =  new FirstFail(recommendationTasks.recomTasks_copies[index][i].kb.getModelKB()); break;
+						case 4: varheuristics[4] =  new AntiFirstFail(recommendationTasks.recomTasks_copies[index][i].kb.getModelKB()); break;
+						case 8: varheuristics[8] =  new InputOrder(recommendationTasks.recomTasks_copies[index][i].kb.getModelKB()); break;
+						case 9: recommendationTasks.recomTasks_copies[index][i].kb.getModelKB().getSolver().setSearch( new DomOverWDeg(recommendationTasks.recomTasks_copies[index][i].kb.getVars(), (long) 0.01, valueorderingheuristics[h])); break;
+						case 10: recommendationTasks.recomTasks_copies[index][i].kb.getModelKB().getSolver().setSearch( new ImpactBased(recommendationTasks.recomTasks_copies[index][i].kb.getVars(), false)); break;
 						default: recommendationTasks.recomTasks_copies[index][i].seValOrdHeuristics(varheuristics[j],valueorderingheuristics[h]); break;
 							
 					}
 					
-					recommendationTasks.recomTasks_copies[index][i].modelKB.getSolver().solve();
+					recommendationTasks.recomTasks_copies[index][i].kb.getModelKB().getSolver().solve();
 					
 				}
 				index++;
@@ -251,13 +254,15 @@ public class RunConfRix {
 		// *********************************************************************
 		// STEP-8: SOLVE PROBLEMS USING COBARIX
 		// *********************************************************************
-		
+		System.out.println("STEP-8");
 		for (int j=0;j<varheuristics.length;j++){
 			// online spent time
 			long start3=System.nanoTime();
 			for (int i=0;i<numberOfProblems;i++){
 				recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics(varheuristics[0]);
-				recommendationTasks.recomTasks[j][i].modelKB.getSolver().solve();
+				recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().solve();
+				//System.out.println("Problem-"+i+"cobarix soln, value of Var0: "+((IntVar)(recommendationTasks.recomTasks[j][i].kb.getModelKB().getVar(0))).getValue());
+				//System.out.println("Problem-"+i+"cobarix soln, value of Var1: "+((IntVar)(recommendationTasks.recomTasks[j][i].kb.getModelKB().getVar(1))).getValue());
 			}
 			long end3=System.nanoTime();
 			
@@ -278,7 +283,10 @@ public class RunConfRix {
 			for (int h=0;h<varheuristics.length;h++){
 				for (int i=0;i<numberOfProblems;i++){
 					for(int j=0;j<knowledgebase.numberOfVariables;j++)
-						recommendationsCobarix [i][j] = recommendationTasks.recomTasks[h][i].vars[j].getValue();
+						recommendationsCobarix [i][j] = ((IntVar)(recommendationTasks.recomTasks[h][i].kb.getModelKB().getVar(j))).getValue();
+					
+					System.out.println("Problem-"+i+"cobarix soln, value of Var0: "+recommendationsCobarix [i][0]);
+					System.out.println("Problem-"+i+"cobarix soln, value of Var1: "+recommendationsCobarix [i][1]);
 				}
 				
 				float accuracy = recommendationTasks.getAccuracy(recommendationsCobarix,h,knowledgebase);
@@ -295,9 +303,9 @@ public class RunConfRix {
 			// isTestAccuracy = true
 			int [] recommendationsKNN = new int [numberOfProblems];
 			for (int i=0;i<numberOfProblems;i++){
-				int [] similars = KNN.getKNN(3, recommendationTasks.reqs[i], knowledgebase.purchases, knowledgebase.kb);
-				int recommendedItem = KNN.aggregateProductID(similars, recommendationTasks);
-				recommendationsKNN [i] = recommendedItem;
+				int [] similars = KNN.getKNN(1, recommendationTasks.reqs[i], knowledgebase.purchases, knowledgebase.kb);
+				//int recommendedItem = KNN.aggregateProductID(similars, recommendationTasks);
+				recommendationsKNN [i] = similars[0];
 			}
 			
 			float accuracy_knn = recommendationTasks.getAccuracy(recommendationsKNN,knowledgebase);

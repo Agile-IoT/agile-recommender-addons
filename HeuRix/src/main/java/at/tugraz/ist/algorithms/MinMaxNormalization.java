@@ -10,7 +10,7 @@ public class MinMaxNormalization {
 		
 		double [] normalized = new double[arrayToNormalize.length];
 		
-		for(int i=0;i<vars.length;i++){
+		for(int i=0;i<arrayToNormalize.length;i++){
 			double min = vars[i].getLB();
 			double max = vars[i].getUB();
 			normalized[i] = (double)((arrayToNormalize[i]-min)/(max-min));
