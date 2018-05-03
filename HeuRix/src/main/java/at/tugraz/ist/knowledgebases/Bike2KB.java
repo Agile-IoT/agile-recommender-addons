@@ -10,7 +10,7 @@ public class Bike2KB implements KB{
 	Model modelKB = new Model("BikeConfigurationProblem");
 	int numberOfVariables = 34;
 	IntVar[] vars = new IntVar[numberOfVariables];
-	int [][] domains = null;
+	int [][] domains = new int [numberOfVariables][];
 	
 	public Bike2KB(){
 		// 34 variables

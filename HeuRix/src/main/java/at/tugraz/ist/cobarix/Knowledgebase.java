@@ -45,7 +45,7 @@ public class Knowledgebase {
 	int [][] purchases;
 	int [] purchaseIDs;
 	
-	Knowledgebase(KB kb){
+	Knowledgebase(KB kb, boolean isTestAccuracy){
 		 this.kb = kb;
 		 numberOfVariables= kb.getNumberOfVariables(); 
 		 
@@ -70,49 +70,50 @@ public class Knowledgebase {
 	        }
 	             
 	     // ADDITIONAL CONSTRAINTS
-//			for(int i=0;i<numberOfVariables;i++){
-//				int value = kb.getVars()[i].getDomainSize();
-//				int minvalue = kb.getVars()[i].getLB();
-//				int maxvalue = kb.getVars()[i].getUB();
-//				
-//				int avg = (maxvalue-minvalue)/2;
-//				if (i<numberOfVariables-1)
-//					kb.getModelKB().ifThen(
-//							kb.getModelKB().arithm(kb.getVars()[i],">",avg),
-//							kb.getModelKB().arithm(kb.getVars()[i+1],"!=",kb.getVars()[i])
-//					);
-//				if (i<numberOfVariables-2)
-//					kb.getModelKB().ifThen(
-//							kb.getModelKB().arithm(kb.getVars()[i],">",avg),
-//							kb.getModelKB().arithm(kb.getVars()[i+2],"!=",kb.getVars()[i])
-//					);
-//				if (i<numberOfVariables-3)
-//					kb.getModelKB().ifThen(
-//							kb.getModelKB().arithm(kb.getVars()[i],">",avg),
-//							kb.getModelKB().arithm(kb.getVars()[i+3],"!=",kb.getVars()[i])
-//					);
-//				
-//				
-//				
-//				if (i>1)
-//					kb.getModelKB().ifThen(
-//							kb.getModelKB().arithm(kb.getVars()[i],"<",avg),
-//							kb.getModelKB().arithm(kb.getVars()[i-1],"!=",kb.getVars()[i])
-//					);
-//				if (i>2)
-//					kb.getModelKB().ifThen(
-//							kb.getModelKB().arithm(kb.getVars()[i],"<",avg),
-//							kb.getModelKB().arithm(kb.getVars()[i-2],"!=",kb.getVars()[i])
-//				);
-//				
-//				if (i>3)
-//					kb.getModelKB().ifThen(
-//							kb.getModelKB().arithm(kb.getVars()[i],"<",avg),
-//							kb.getModelKB().arithm(kb.getVars()[i-3],"!=",kb.getVars()[i])
-//				);
-//				
-//				
-//			}
+	     if(!isTestAccuracy)
+			for(int i=0;i<numberOfVariables;i++){
+				int value = kb.getVars()[i].getDomainSize();
+				int minvalue = kb.getVars()[i].getLB();
+				int maxvalue = kb.getVars()[i].getUB();
+				
+				int avg = (maxvalue-minvalue)/2;
+				if (i<numberOfVariables-1)
+					kb.getModelKB().ifThen(
+							kb.getModelKB().arithm(kb.getVars()[i],">",avg),
+							kb.getModelKB().arithm(kb.getVars()[i+1],"!=",kb.getVars()[i])
+					);
+				if (i<numberOfVariables-2)
+					kb.getModelKB().ifThen(
+							kb.getModelKB().arithm(kb.getVars()[i],">",avg),
+							kb.getModelKB().arithm(kb.getVars()[i+2],"!=",kb.getVars()[i])
+					);
+				if (i<numberOfVariables-3)
+					kb.getModelKB().ifThen(
+							kb.getModelKB().arithm(kb.getVars()[i],">",avg),
+							kb.getModelKB().arithm(kb.getVars()[i+3],"!=",kb.getVars()[i])
+					);
+				
+				
+				
+				if (i>1)
+					kb.getModelKB().ifThen(
+							kb.getModelKB().arithm(kb.getVars()[i],"<",avg),
+							kb.getModelKB().arithm(kb.getVars()[i-1],"!=",kb.getVars()[i])
+					);
+				if (i>2)
+					kb.getModelKB().ifThen(
+							kb.getModelKB().arithm(kb.getVars()[i],"<",avg),
+							kb.getModelKB().arithm(kb.getVars()[i-2],"!=",kb.getVars()[i])
+				);
+				
+				if (i>3)
+					kb.getModelKB().ifThen(
+							kb.getModelKB().arithm(kb.getVars()[i],"<",avg),
+							kb.getModelKB().arithm(kb.getVars()[i-3],"!=",kb.getVars()[i])
+				);
+				
+				
+			}
 			
 
 	}
@@ -129,7 +130,7 @@ public class Knowledgebase {
 			for(int j=0;j<numberOfVariables;j++){
 				purchases[i][j]= Integer.valueOf(parsed[j]);
 			}
-			purchaseIDs[i]= Integer.valueOf(parsed[parsed.length-2]);
+			purchaseIDs[i]= Integer.valueOf(parsed[parsed.length-1]);
 			writeSolutionToFile(outputFile,purchases[i],i,false);
 		}
 		
@@ -177,7 +178,7 @@ public class Knowledgebase {
 			if(!istype2){
 				for (int d=0;d<size;d++){ // for ex: size is 14
 					String value = "0.0";
-					if(values[t]==d) // for ex : random=5 and d=5
+					if(values[t]==kb.getDomains()[t][d]) // for ex : random=5 and d=5
 						value = "1.0";
 					String s= itemIndex+","+value+"\n";
 					lines.add(s);
@@ -245,17 +246,15 @@ public class Knowledgebase {
 						myValueOrder,
 						kb.getVars()	
 		));
+
+	}
+	
+	public SedasValueOrdering getCOBARIXHeuristics (){
 		
-//		pckb.kb.getModelKB().getSolver().setSearch(           
-//	              Search.intkb.getVars()earch(
-//	               getVariableSelector(heuristicCounter / valueSelectors.length, pckb.kb.getModelKB()),
-//	               valueSelectors[heuristicCounter % valueSelectors.length],
-//	               pckb.getkb.getVars()()[0], pckb.getkb.getVars()()[16],  pckb.getkb.getVars()()[18], pckb.getkb.getVars()()[19]),
-//	              Search.intkb.getVars()earch(
-//	                getVariableSelector(heuristicCounter / valueSelectors.length, pckb.kb.getModelKB()),
-//	                valueSelectors[0 % valueSelectors.length],
-//	                pckb.getkb.getVars()()[15], pckb.getkb.getVars()()[21])
-//	             );
+		SedasValueOrdering myValueOrder = new SedasValueOrdering(valueOrdering, kb.getDomains());
+		//VariableSelector kb.getVars()elector =  new InputOrder<>(kb.getModelKB());
+		
+	    return myValueOrder;
 	}
 	
 	public void seValOrdHeuristics (VariableSelector variableSelector, IntValueSelector valueOrder){

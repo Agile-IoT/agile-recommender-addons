@@ -7,7 +7,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
+import java.util.Set;
 
 import org.apache.commons.io.FileUtils;
 import org.chocosolver.solver.variables.IntVar;
@@ -16,6 +20,7 @@ import at.tugraz.ist.fileOperations.ReadFile;
 import at.tugraz.ist.fileOperations.WriteToFile;
 import at.tugraz.ist.knowledgebases.Bike2KB;
 import at.tugraz.ist.knowledgebases.CameraKB;
+import at.tugraz.ist.knowledgebases.PCKB;
 
 public class RecommendationTasks {
 
@@ -27,43 +32,72 @@ public class RecommendationTasks {
     Knowledgebase [][] recomTasks; 
     Knowledgebase [][] recomTasks_copies; 
     
-    int numberOfVariablesInAReq = 2;
+    int numberOfVariablesInAReq = 1;
     
-    public RecommendationTasks(int numberOfvariables){
+    public RecommendationTasks(int numberOfvariables, int n){
     	this.numberOfvariables =  numberOfvariables;
+    	this.numberOfVariablesInAReq = n;
     }
     
+    // CameraKB
     public int[][] generateDataset_fromFile(int numberOfVars, int [][]histTransactions, int numberofReqs,int numberOfComparedHeuristics,int numberOfVarOrdHeuristics){
+    	boolean isTestAccuracy = true;
+    	
     	this.numberofReqs = numberofReqs;
 		recomTasks = new Knowledgebase[numberOfVarOrdHeuristics][numberofReqs];
 		
 		
 		recomTasks_copies = new Knowledgebase[numberOfComparedHeuristics][numberofReqs];
-		reqs = new int[numberofReqs][numberOfVariablesInAReq];
+		reqs = new int[numberofReqs][numberOfVars];
+		
 		
 		for (int i=0;i<numberofReqs;i++){
 			
-			// TAKE FIRST TWO
-			for(int j=0;j<2;j++){
-				reqs[i][j] = histTransactions[i][j];
+			for(int j=0;j<numberOfVars;j++){
+				reqs[i][j] = -1;
+			}
+			
+			Random rnd = new Random();
+			Set randoms = new HashSet<>();
+			for(int j=0;j<numberOfVariablesInAReq;j++){
+				int random = rnd.nextInt(numberOfVars);
+				
+				if (randoms.isEmpty())
+					randoms.add(random);
+				
+				else{
+					if(randoms.contains(random)){
+						j--;
+						continue;
+					}
+					else
+						randoms.add(random);
+				}
+				
+				if(random == numberOfVars)
+					random = random-1;
+				reqs[i][random] = histTransactions[i][random];
+					
+				//int random = (int) (Math.random()*numberOfVars);
+				
 			}
 			
 			for(int j=0;j<numberOfVarOrdHeuristics;j++){
-				recomTasks[j][i] = new Knowledgebase(new CameraKB());
-				// TAKE FIRST TWO
-				for(int t=0;t<2;t++){
-					recomTasks[j][i].kb.getModelKB().arithm((IntVar)recomTasks[j][i].kb.getModelKB().getVar(t),"=",reqs[i][t]).post();
-					System.out.println("Problem-"+i+", Var :"+t+"= "+reqs[i][t]);
+				recomTasks[j][i] = new Knowledgebase(new CameraKB(),isTestAccuracy);
+			
+				for(int t=0;t<numberOfvariables;t++){
+					if(reqs[i][t]!=-1)
+						recomTasks[j][i].kb.getModelKB().arithm((IntVar)recomTasks[j][i].kb.getModelKB().getVar(t),"=",reqs[i][t]).post();
+					//System.out.println("Problem-"+i+", Var :"+t+"= "+reqs[i][t]);
 				}
 				
 			}
 			
 			for(int j=0;j<numberOfComparedHeuristics;j++){
-				recomTasks_copies[j][i] = new Knowledgebase(new CameraKB());
-				
-				// TAKE FIRST TWO
-				for(int t=0;t<2;t++){
-					recomTasks_copies[j][i].kb.getModelKB().arithm((IntVar)recomTasks_copies[j][i].kb.getModelKB().getVar(t),"=",reqs[i][t]).post();
+				recomTasks_copies[j][i] = new Knowledgebase(new CameraKB(),isTestAccuracy);
+				for(int t=0;t<numberOfvariables;t++){
+					if(reqs[i][t]!=-1)
+						recomTasks_copies[j][i].kb.getModelKB().arithm((IntVar)recomTasks_copies[j][i].kb.getModelKB().getVar(t),"=",reqs[i][t]).post();
 				}
 			}
 		} 
@@ -72,7 +106,8 @@ public class RecommendationTasks {
     }
     
     
-	public int[][] generateDataset (int numberOfVars, int numberofReqs, int solnSize, String inputFile, String outputFolder, boolean istype2,int numberOfComparedHeuristics,int numberOfVarOrdHeuristics)
+    // Bike2KB or PCKB
+	public int[][] generateDataset (int numberOfVars, int numberofReqs, int solnSize, String inputFile, String outputFolder, boolean istype2,int numberOfComparedHeuristics,int numberOfVarOrdHeuristics, boolean isBike, boolean isTestAccuracy)
 	{
 		this.numberofReqs = numberofReqs;
 		recomTasks = new Knowledgebase[numberOfVarOrdHeuristics][numberofReqs];
@@ -85,10 +120,16 @@ public class RecommendationTasks {
 		for (int i=0;i<numberofReqs;i++){
 			
 			for(int j=0;j<numberOfVarOrdHeuristics;j++){
-				recomTasks[j][i] = new Knowledgebase(new CameraKB());
+				if(isBike)
+					recomTasks[j][i] = new Knowledgebase(new Bike2KB(),isTestAccuracy);
+				else
+					recomTasks[j][i] = new Knowledgebase(new PCKB(),isTestAccuracy);
 			}
 			for(int j=0;j<numberOfComparedHeuristics;j++){
-				recomTasks_copies[j][i] = new Knowledgebase(new Bike2KB());
+				if(isBike)
+					recomTasks_copies[j][i] = new Knowledgebase(new Bike2KB(),isTestAccuracy);
+				else
+					recomTasks_copies[j][i] = new Knowledgebase(new PCKB(),isTestAccuracy);
 			}
 			
 //			// FILE OPERATIONS
@@ -169,6 +210,8 @@ public class RecommendationTasks {
 			if(Math.random()<requirementRate && count<numberOfVariablesInAReq){
 				count++;
 				random = (int) (Math.random()*size); // for ex: random=5
+				if(random == size)
+					random = size-1;
 				//recomTasks[index].modelKB.arithm(recomTasks[index].vars[t],"=",random).post();
 				
 				for(int j=0;j<numberOfVarOrdHeuristics;j++){
@@ -211,8 +254,8 @@ public class RecommendationTasks {
 		return reqs;		
 	}
 	
-	public float getAccuracy(int [][] recommendations, int index, Knowledgebase kb){
-		float accuracy = 0;
+	public double getAccuracy(int [][] recommendations, int index, Knowledgebase kb){
+		double accuracy = 0;
 		
 		//for (int h=0;h<numberOfVarOrdHeuristics;h++){
 			for(int j=0;j<numberofReqs;j++){
@@ -226,14 +269,14 @@ public class RecommendationTasks {
 				}
 				accuracy += result;
 			}
-			accuracy = accuracy/numberofReqs;
+			accuracy =  (double)(accuracy/numberofReqs);
 		//}
 		
 		return accuracy;
 	}
 
-	public float getAccuracy(int [] recommendedIDs,Knowledgebase kb){
-		float accuracy = 0;
+	public double getAccuracy(int [] recommendedIDs,Knowledgebase kb){
+		double accuracy = 0;
 		
 		for(int j=0;j<numberofReqs;j++){
 			int result =1;
@@ -246,7 +289,7 @@ public class RecommendationTasks {
 			accuracy += result;
 		}
 		
-		return accuracy/numberofReqs;
+		return (double)(accuracy/numberofReqs);
 	}
 
 }

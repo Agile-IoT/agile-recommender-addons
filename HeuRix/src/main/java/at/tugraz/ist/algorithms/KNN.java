@@ -45,11 +45,30 @@ public class KNN {
 	public static int[] aggregateAvg (int[][] similars){
 		int size = similars[0].length;
 		int[] aggr = new int [size];
-		for(int i=0;i<similars.length;i++){
-			for(int j=0;j<size;j++){
-				aggr[i] = similars[i][j];
+		for(int i=0;i<size;i++){
+			aggr[i]=0;
+			for(int j=0;j<similars.length;j++){
+				if(j==0)
+					aggr[i]=0;
+				aggr[i] += similars[j][i];
 			}
-			aggr[i] = aggr[i] / size;
+			aggr[i] = aggr[i] / similars.length;
+		}
+		
+		return aggr;
+	}
+	
+	public static double[] aggregateAvgDouble (double[][] similars){
+		int size = similars[0].length;
+		double[] aggr = new double [size];
+		for(int i=0;i<size;i++){
+			
+			for(int j=0;j<similars.length;j++){
+				if(j==0)
+					aggr[i]=0;
+				aggr[i] += similars[j][i];
+			}
+			aggr[i] = (double)(aggr[i] / similars.length);
 		}
 		
 		return aggr;

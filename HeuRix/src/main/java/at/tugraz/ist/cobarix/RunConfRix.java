@@ -22,19 +22,29 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import at.tugraz.ist.algorithms.MatrixFactorization;
 import at.tugraz.ist.algorithms.MinMaxNormalization;
+import at.tugraz.ist.algorithms.CollaborativeFiltering;
 import at.tugraz.ist.algorithms.KNN;
 import at.tugraz.ist.knowledgebases.Bike2KB;
 import at.tugraz.ist.knowledgebases.CameraKB;
+import at.tugraz.ist.knowledgebases.PCKB;
 
 public class RunConfRix {
 
 	@Autowired
 	public static void main (String [] args){
 		
+		// *********************************************************************
+		// ****************       SET TEST PARAMETERS      *********************
+		// *********************************************************************
+		
 		// istype2 is not applying bitmap technique. so each var is stated with its value
 		boolean istype2 = false;
 		boolean isTestAccuracy = true;
+		boolean isBikeKB = false;
+		int r=9;
 		VariableSelector [] varheuristics = new VariableSelector [13];
+		
+		
 		
 		// *********************************************************************
 		// ****************       OFFLINE PHASE            *********************
@@ -43,7 +53,15 @@ public class RunConfRix {
 		// *********************************************************************
 		// STEP-1: GENERATE SOLUTIONS (sample solutions of BikeConfig+user reqs)
 		// *********************************************************************
-		Knowledgebase knowledgebase = new Knowledgebase(new CameraKB());
+		Knowledgebase knowledgebase;
+		if(isTestAccuracy)
+			 knowledgebase = new Knowledgebase(new CameraKB(),isTestAccuracy);
+		else{
+			if(isBikeKB)
+				 knowledgebase = new Knowledgebase(new Bike2KB(),isTestAccuracy);
+			else
+				 knowledgebase = new Knowledgebase(new PCKB(),isTestAccuracy);
+		}
 		int solnSize= 20;
 		String solutionsFile = "Files/ConfigSolutions/Solutions_"+System.currentTimeMillis();
 		String cameraFile = "Files/CameraDataset/CameraUserReqs.data";
@@ -93,7 +111,7 @@ public class RunConfRix {
 		// *********************************************************************
 		// STEP-3: GENERATE/READ NEW PROBLEMS 
 		// *********************************************************************
-		RecommendationTasks recommendationTasks= new RecommendationTasks(knowledgebase.numberOfVariables);
+		RecommendationTasks recommendationTasks= new RecommendationTasks(knowledgebase.numberOfVariables,r);
 		int numberOfProblems= 2;
 		int numberOfComparedHeuristics = 78; 
 		String outputDirectory =  "Files/ConfigDataset";
@@ -103,7 +121,7 @@ public class RunConfRix {
 		if(isTestAccuracy)
 			reqs = recommendationTasks.generateDataset_fromFile(numberOfVariables,histTransactions, numberOfProblems, numberOfComparedHeuristics,varheuristics.length);
 		else
-			reqs = recommendationTasks.generateDataset(numberOfVariables,numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics,varheuristics.length);
+			reqs = recommendationTasks.generateDataset(numberOfVariables,numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics,varheuristics.length,isBikeKB,isTestAccuracy);
 		
 		System.out.println("STEP-3 is completed.");
 		
@@ -138,7 +156,7 @@ public class RunConfRix {
 			}
 		}
 		long end_step4 = System.nanoTime();
-		System.out.println("STEP-4 is completed: "+(end_step4-start));
+		System.out.println("STEP-4 is completed. Finding similar in the online phase, time spent: "+(end_step4-start));
 		
 		// *********************************************************************
 		// STEP-5: FIND PREDICTIONS FOR EACH PROBLEM (array multiplication)
@@ -155,7 +173,7 @@ public class RunConfRix {
 		}
 		
 		long end_step5 =System.nanoTime();
-		System.out.println("STEP-5 is completed: "+(end_step5-end_step4));
+		System.out.println("STEP-5 is completed. Matrix multiplication in the online phase, time spent:  "+(end_step5-end_step4));
 		
 		
 		// *********************************************************************
@@ -182,7 +200,7 @@ public class RunConfRix {
 			}
 		}
 		long end =System.nanoTime();
-		System.out.println("STEP-6 is completed: "+(end-end_step5));
+		System.out.println("STEP-6 is completed. Converting into value ordering in the online phase, time spent:  "+(end-end_step5));
 		
 		// *********************************************************************
 		// STEP-7: SOLVE PROBLEMS USING BUILT-IN VALUE ORDERINGS
@@ -222,8 +240,11 @@ public class RunConfRix {
 		int index=0;
 		for (int j=0;j<varheuristics.length;j++){
 			
+			
+			
 			for(int h=0;h<valueorderingheuristics.length;h++){
 				long start2=System.nanoTime();
+				
 				for (int i=1;i<numberOfProblems;i++){
 					//if(j!=numberOfComparedHeuristics-1)
 					switch(j){
@@ -241,11 +262,14 @@ public class RunConfRix {
 					
 				}
 				index++;
-				long end2=System.nanoTime();
 				
+				long end2=System.nanoTime();
 				long avgtime2 = ((end2-start2))/(numberOfProblems-1); 
-				System.out.println("WITH HEURISTIC#"+j+"-"+h+": "+ avgtime2);
+				//System.out.println("WITH HEURISTIC#"+j+"-"+h+": "+ avgtime2);
+				if(j!=2 && j!=10 && j!=4 && j!=5)
+				System.out.println(avgtime2);
 			}
+			
 		}
 		
 		System.out.println("STEP-7 is completed.");
@@ -259,15 +283,47 @@ public class RunConfRix {
 			// online spent time
 			long start3=System.nanoTime();
 			for (int i=0;i<numberOfProblems;i++){
-				recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics(varheuristics[0]);
-				recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().solve();
+				
+				 
+				switch(j){
+					case 2: 
+						recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().setSearch(new ActivityBased(recommendationTasks.recomTasks[j][i].kb.getVars()));
+						break;
+					case 3: 
+						varheuristics[3] =  new FirstFail(recommendationTasks.recomTasks[j][i].kb.getModelKB()); 
+						recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics(varheuristics[j]); 
+						break;
+					case 4: 
+						varheuristics[4] =  new AntiFirstFail(recommendationTasks.recomTasks[j][i].kb.getModelKB()); 
+						recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics(varheuristics[j]); 
+						break;
+					case 8: 
+						varheuristics[8] =  new InputOrder(recommendationTasks.recomTasks[j][i].kb.getModelKB()); 
+						recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics(varheuristics[j]); 
+						break;
+					case 9: 
+						recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().setSearch( new DomOverWDeg(recommendationTasks.recomTasks[j][i].kb.getVars(), (long) 0.01, recommendationTasks.recomTasks[j][i].getCOBARIXHeuristics())); 
+						break;
+					case 10: 
+						recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().setSearch( new ImpactBased(recommendationTasks.recomTasks[j][i].kb.getVars(), false)); 
+						break;
+					default: 
+						recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics(varheuristics[j]); 
+						break;
+				}
+				
+			   
+			    recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().solve();
 				//System.out.println("Problem-"+i+"cobarix soln, value of Var0: "+((IntVar)(recommendationTasks.recomTasks[j][i].kb.getModelKB().getVar(0))).getValue());
 				//System.out.println("Problem-"+i+"cobarix soln, value of Var1: "+((IntVar)(recommendationTasks.recomTasks[j][i].kb.getModelKB().getVar(1))).getValue());
 			}
 			long end3=System.nanoTime();
 			
-			long avgtime3 = ((end-start)+(end3-start3))/(numberOfProblems); 
-			System.out.println("varheuristics ID: "+j+", WITH COBARIX: "+ (avgtime3));
+			long avgtime3 = ((end-start)+(end3-start3))/(numberOfProblems);
+			//long avgtime3 = ((end3-start3))/(numberOfProblems);
+			//System.out.println("varheuristics ID: "+j+", WITH COBARIX: "+ (avgtime3));
+			if(j!=2 && j!=10 && j!=4 && j!=5)
+				System.out.println(avgtime3);
 		}
 		
 		System.out.println("STEP-8 is completed.");
@@ -280,20 +336,32 @@ public class RunConfRix {
 			// *********************************************************************
 			// isTestAccuracy = true
 			int [][] recommendationsCobarix = new int [numberOfProblems][knowledgebase.numberOfVariables];
-			for (int h=0;h<varheuristics.length;h++){
+			double accuracyTotal = 0;
+			for (int h=0;h<3;h++){
+				int id = 1;
+				
+				if (h==0)
+					id=1;
+				if (h==1)
+					id=4;
+				if (h==2)
+					id=6;
+				
 				for (int i=0;i<numberOfProblems;i++){
+					
 					for(int j=0;j<knowledgebase.numberOfVariables;j++)
 						recommendationsCobarix [i][j] = ((IntVar)(recommendationTasks.recomTasks[h][i].kb.getModelKB().getVar(j))).getValue();
 					
-					System.out.println("Problem-"+i+"cobarix soln, value of Var0: "+recommendationsCobarix [i][0]);
-					System.out.println("Problem-"+i+"cobarix soln, value of Var1: "+recommendationsCobarix [i][1]);
+					//System.out.println("Problem-"+i+"cobarix soln, value of Var0: "+recommendationsCobarix [i][0]);
+					//System.out.println("Problem-"+i+"cobarix soln, value of Var1: "+recommendationsCobarix [i][1]);
 				}
 				
-				float accuracy = recommendationTasks.getAccuracy(recommendationsCobarix,h,knowledgebase);
-				System.out.println("varheuristics ID: "+h+"Accuracy of COBARIX: "+ accuracy);
+				double accuracy = recommendationTasks.getAccuracy(recommendationsCobarix,h,knowledgebase);
+				System.out.println("varheuristics ID: "+h+", accuracy of COBARIX: "+ accuracy);
+				accuracyTotal += accuracy;
 			}
 			
-				
+			System.out.println("avg accuracy of COBARIX: "+ accuracyTotal/3);
 			System.out.println("STEP-9 is completed.");
 			
 			
@@ -308,9 +376,27 @@ public class RunConfRix {
 				recommendationsKNN [i] = similars[0];
 			}
 			
-			float accuracy_knn = recommendationTasks.getAccuracy(recommendationsKNN,knowledgebase);
+			double accuracy_knn = recommendationTasks.getAccuracy(recommendationsKNN,knowledgebase);
 			System.out.println("Accuracy of KNN: "+ accuracy_knn);
 			System.out.println("STEP-10 is completed.");
+			
+			
+			
+			// *********************************************************************
+			// STEP-11: ACCURACY OF Mahout CF Similarities
+			// *********************************************************************
+			// isTestAccuracy = true
+			int [] recommendedIDs = new int [numberOfProblems];
+			for (int m=0;m<4;m++){
+				for (int i=0;i<numberOfProblems;i++){
+					recommendedIDs[i] = CollaborativeFiltering.applyCollaborativeFiltering(recommendationTasks.reqs[i],knowledgebase.kb.getDomains(),m);
+				}
+				
+				double accuracy_mahout = recommendationTasks.getAccuracy(recommendedIDs,knowledgebase);
+				System.out.println("Accuracy of Mahout-"+m+": "+ accuracy_mahout);
+			
+			}
+			System.out.println("STEP-11 is completed.");
 		
 		}
 		
