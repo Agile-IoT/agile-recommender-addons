@@ -29,7 +29,7 @@ import at.tugraz.ist.fileOperations.CopyFile;
 public class CollaborativeFiltering {
 
 		static String userProfilesFile = "Files/ConfigSolutions/CameraUserRatings";
-		//List<RecommendedItem> recommendations=null;
+		static List<RecommendedItem> recommendations=null;
 		static int [][] domainValues;
 	
 		public static int applyCollaborativeFiltering(int [] reqs, int domains [][], int methodID){
@@ -78,20 +78,20 @@ public class CollaborativeFiltering {
 				
 			
 				//UserNeighborhood neighborhood = new ThresholdUserNeighborhood(0.1, similarity, model);
-				UserNeighborhood neighborhood = new NearestNUserNeighborhood(1, similarity, model);
+				UserNeighborhood neighborhood = new NearestNUserNeighborhood(20, similarity, model);
 				
 				// all the pieces to create our recommender
 				UserBasedRecommender recommender = new GenericUserBasedRecommender(model, neighborhood, similarity);
 				
 				//  get 10 items recommended for the user with userID 
-				// recommendations = recommender.recommend(userID, 92);
+				recommendations = recommender.recommend(userID, 92);
 				
 				
 				// check items from 72 to 91 
 				float max=0;
 				
 				for(int i=0;i<20;i++){
-					float preference = recommender.estimatePreference(userID,i);
+					float preference = recommender.estimatePreference(userID,i+72);
 					if(preference>max){
 						max = preference;
 						id = i;

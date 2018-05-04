@@ -41,7 +41,7 @@ public class RunConfRix {
 		boolean istype2 = false;
 		boolean isTestAccuracy = true;
 		boolean isBikeKB = false;
-		int r=9;
+		int r=1;
 		VariableSelector [] varheuristics = new VariableSelector [13];
 		
 		
