@@ -41,7 +41,7 @@ public class RunConfRix {
 		boolean istype2 = false;
 		boolean isTestAccuracy = true;
 		boolean isBikeKB = false;
-		int r=1;
+		int r=3;
 		VariableSelector [] varheuristics = new VariableSelector [13];
 		
 		
@@ -209,7 +209,8 @@ public class RunConfRix {
 
 		// WITHOUT USING COBARIX 
 		// eliminate the first problems solving time
-		recommendationTasks.recomTasks_copies[0][0].kb.getModelKB().getSolver().solve();
+		for(int m=0;m<100;m++)
+			recommendationTasks.recomTasks_copies[0][0].kb.getModelKB().getSolver().solve();
 		
 		// Compared Value Ordering Heuristics
 		IntValueSelector valueorderingheuristics[]= new IntValueSelector[6];
@@ -243,8 +244,9 @@ public class RunConfRix {
 			
 			
 			for(int h=0;h<valueorderingheuristics.length;h++){
-				long start2=System.nanoTime();
 				
+				long avgtime2 = 0;
+				long start2=System.nanoTime();				
 				for (int i=1;i<numberOfProblems;i++){
 					//if(j!=numberOfComparedHeuristics-1)
 					switch(j){
@@ -258,13 +260,15 @@ public class RunConfRix {
 							
 					}
 					
+					start2=System.nanoTime();
 					recommendationTasks.recomTasks_copies[index][i].kb.getModelKB().getSolver().solve();
-					
+					long end2=System.nanoTime();
+					avgtime2 += (end2-start2);
 				}
 				index++;
 				
-				long end2=System.nanoTime();
-				long avgtime2 = ((end2-start2))/(numberOfProblems-1); 
+				//long end2=System.nanoTime();
+				avgtime2 = (avgtime2)/(numberOfProblems-1); 
 				//System.out.println("WITH HEURISTIC#"+j+"-"+h+": "+ avgtime2);
 				if(j!=2 && j!=10 && j!=4 && j!=5)
 				System.out.println(avgtime2);
@@ -319,8 +323,8 @@ public class RunConfRix {
 			}
 			long end3=System.nanoTime();
 			
-			long avgtime3 = ((end-start)+(end3-start3))/(numberOfProblems);
-			//long avgtime3 = ((end3-start3))/(numberOfProblems);
+			//long avgtime3 = ((end-start)+(end3-start3))/(numberOfProblems);
+			long avgtime3 = ((end3-start3))/(numberOfProblems);
 			//System.out.println("varheuristics ID: "+j+", WITH COBARIX: "+ (avgtime3));
 			if(j!=2 && j!=10 && j!=4 && j!=5)
 				System.out.println(avgtime3);

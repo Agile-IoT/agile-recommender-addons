@@ -37,6 +37,14 @@ public class TestMF {
 			double [][] normalized_denseMatrix = new double[denseMatrix.length][];
 			double [][]minmax = {{-0.3,1.9},{-0.2,1.9},{-0.3,1.9},{-0.4,2.7},{-0.3,2.2}};
 			
+			System.out.println("Distances"); 
+			for(int d=0;d<denseMatrix.length;d++){
+				//normalized_denseMatrix[d] = MinMaxNormalization.normalizeTo01(denseMatrix[d],minmax[d]);
+				double dist =MatrixFactorization.euclidean_distance(lisa,denseMatrix[d]);
+				System.out.println(dist); 
+			}
+			
+			System.out.println("Norm Distances"); 
 			for(int d=0;d<denseMatrix.length;d++){
 				normalized_denseMatrix[d] = MinMaxNormalization.normalizeTo01(denseMatrix[d],minmax[d]);
 				double dist =MatrixFactorization.euclidean_distance(lisa,normalized_denseMatrix[d]);
@@ -52,6 +60,7 @@ public class TestMF {
 				for(int j=0;j<similars[0].length;j++)
 					System.out.print(df2.format(similars[i][j])+"&");
 			}
+			
 			
 			System.out.println("aggr"); 
 			for(int j=0;j<aggr.length;j++)
