@@ -236,7 +236,7 @@ public class MyChocoSolver {
 		
 		 varSelector =(VariableSelector<IntVar>) variables -> {
 				for(int i =0;i<model.getVars().length;i++){
-			        return intvars[i];
+			        return intvars[varOrder[i]];
 			    }
 			    return null;
 	     };

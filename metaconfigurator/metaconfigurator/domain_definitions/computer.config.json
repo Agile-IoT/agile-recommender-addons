@@ -1,0 +1,146 @@
+{
+	"name": "Computer",
+	"compositions": [
+		{
+			"lowerBound": 0,
+			"upperBound": 100,
+			"connectedClass": {
+				"name": "Software",
+				"attributes": [
+					{
+						"name": "capacity",
+						"type": "Integer",
+						"domain": "1..20"
+					}
+				],
+				"generalization": {
+					"children": [
+						{
+							"name": "DTPSoftware",
+							"attributes": [
+								{
+									"name": "capacity",
+									"value": 15
+								}
+							]
+						},
+						{
+							"name": "Textedit",
+							"attributes": [
+								{
+									"name": "capacity",
+									"value": 10
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"lowerBound": 1,
+			"upperBound": 6,
+			"connectedClass": {
+				"name": "HDUnit",
+				"attributes": [
+					{
+						"name": "capacity",
+						"type": "Integer",
+						"domain": "10..50"
+					}
+				],
+				"generalization": {
+					"children": [
+						{
+							"name": "IDEUnit",
+							"attributes": [
+								{
+									"name": "capacity",
+									"value": 25
+								}
+							]
+						},
+						{
+							"name": "SCSIUnit",
+							"attributes": [
+								{
+									"name": "capacity",
+									"value": 35
+								}
+							]
+						}
+					]
+				}
+			}
+		},
+		{
+			"lowerBound": 1,
+			"upperBound": 2,
+			"connectedClass": {
+				"name": "MB",
+				"compositions": [
+					{
+						"lowerBound": 1,
+						"upperBound": 2,
+						"connectedClass": {
+							"name": "CPU",
+							"attributes": [
+								{
+									"name": "clockrate",
+									"type": "Integer",
+									"domain": "300..500"
+								}
+							],
+							"generalization": {
+								"children": [
+									{
+										"name": "CPU1",
+										"attributes": [
+											{
+												"name": "clockrate",
+												"value": 300
+											}
+										]
+									},
+									{
+										"name": "CPU2",
+										"attributes": [
+											{
+												"name": "clockrate",
+												"value": 500
+											}
+										]
+									}
+								]
+							}
+						}
+					},
+					{
+						"lowerBound": 1,
+						"upperBound": 1,
+						"connectedClass": {
+							"name": "Videocard"
+						}
+					}
+				],
+				"generalization": {
+					"children": [
+						{
+							"name": "MB1"
+						},
+						{
+							"name": "MB2"
+						}
+					]
+				}
+			}
+		},
+		{
+			"lowerBound": 0,
+			"upperBound": 1,
+			"connectedClass": {
+				"name": "Screen"
+			}
+		}
+	]
+}

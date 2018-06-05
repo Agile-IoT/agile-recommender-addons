@@ -41,6 +41,7 @@ public class Knowledgebase {
 	HashMap<Integer,Integer> hashmapIDs = new HashMap<Integer,Integer>();  
 	int[] lowBoundaries ;  
 	int [][] valueOrdering ;
+	int [] variableOrdering ;
 	
 	int [][] purchases;
 	int [] purchaseIDs;
@@ -54,7 +55,7 @@ public class Knowledgebase {
 		 domainSizes= new int[numberOfVariables];
 		 lowBoundaries = new int[numberOfVariables]; 
 		 valueOrdering = new int [numberOfVariables][];
-		 
+		 variableOrdering= new int [numberOfVariables];
 		
 		  int index = 0;
 	        for(int i=0;i<numberOfVariables;i++){
@@ -235,7 +236,7 @@ public class Knowledgebase {
 			}
 	}
 	
-	public void setCOBARIXHeuristics (VariableSelector variableSelector){
+	public void setCOBARIXHeuristics_onlyValue (VariableSelector variableSelector){
 		
 		SedasValueOrdering myValueOrder = new SedasValueOrdering(valueOrdering, kb.getDomains());
 		//VariableSelector kb.getVars()elector =  new InputOrder<>(kb.getModelKB());
@@ -243,6 +244,42 @@ public class Knowledgebase {
 	     
 		kb.getModelKB().getSolver().setSearch(Search.intVarSearch(
 						variableSelector,
+						myValueOrder,
+						kb.getVars()	
+		));
+
+	}
+	
+	public void setCOBARIXHeuristics_onlyVar (IntValueSelector valueSelector){
+		
+		VariableSelector  varSelector =(VariableSelector<IntVar>) variables -> {
+			for(int i =0;i<kb.getVars().length;i++){
+		        return kb.getVars()[variableOrdering[i]];
+		    }
+		    return null;
+		};
+	     
+		kb.getModelKB().getSolver().setSearch(Search.intVarSearch(
+						varSelector,
+						valueSelector,
+						kb.getVars()	
+		));
+
+	}
+	
+	public void setCOBARIXHeuristics_both (){
+		
+		SedasValueOrdering myValueOrder = new SedasValueOrdering(valueOrdering, kb.getDomains());
+		//VariableSelector kb.getVars()elector =  new InputOrder<>(kb.getModelKB());
+		VariableSelector  varSelector =(VariableSelector<IntVar>) variables -> {
+			for(int i =0;i<kb.getVars().length;i++){
+		        return kb.getVars()[variableOrdering[i]];
+		    }
+		    return null;
+		};
+	     
+		kb.getModelKB().getSolver().setSearch(Search.intVarSearch(
+						varSelector,
 						myValueOrder,
 						kb.getVars()	
 		));
@@ -257,7 +294,7 @@ public class Knowledgebase {
 	    return myValueOrder;
 	}
 	
-	public void seValOrdHeuristics (VariableSelector variableSelector, IntValueSelector valueOrder){
+	public void setComparedHeuristics (VariableSelector variableSelector, IntValueSelector valueOrder){
 		
 		//VariableSelector kb.getVars()elector =  new InputOrder<>(kb.getModelKB());
 		IntValueSelector valueSelector = valueOrder;

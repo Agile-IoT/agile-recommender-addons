@@ -21,10 +21,37 @@ public class TestMF {
 		try {
 			File file_soln = new File(solutionsFile);
 			dataModel = new FileDataModel(file_soln);
-			MatrixFactorization.SVD(dataModel,100,1000,1,6);
+			MatrixFactorization.SVD(dataModel,3,1000,4,10);
 			double [][] p=MatrixFactorization.UF;
 			double [][] q=MatrixFactorization.IF;
 			
+			System.out.println("P"); 
+			for(int i=0;i<p.length;i++){
+				System.out.print("\n");
+				for(int j=0;j<p[0].length;j++)
+					System.out.print(df2.format(p[i][j])+"&");
+			}
+			
+			System.out.println("Q"); 
+			for(int i=0;i<q.length;i++){
+				System.out.print("\n");
+				for(int j=0;j<q[0].length;j++)
+					System.out.print(df2.format(q[i][j])+"&");
+			}
+			
+			double [][]UFlisa = {{0.1,0.3,0.3,-0.4,-0.1,0.5}};
+			
+			System.out.println("MF_Lisa"); 
+			double [][] denseLisa = MatrixFactorization.multiplyByMatrix(UFlisa, q);
+			
+			for(int i=0;i<denseLisa.length;i++){
+				System.out.print("\n");
+				for(int j=0;j<denseLisa[0].length;j++)
+					System.out.print(df2.format(denseLisa[i][j])+"&");
+			}
+			
+			
+			System.out.println("Dense"); 
 			double [][] denseMatrix;
 			denseMatrix = MatrixFactorization.multiplyByMatrix(p, q);
 			for(int i=0;i<denseMatrix.length;i++){
@@ -33,7 +60,7 @@ public class TestMF {
 					System.out.print(df2.format(denseMatrix[i][j])+"&");
 			}
 			
-			double [] lisa = {0,0,1,0,0,0,0,1};
+			double [] lisa = {0,0,1,0,0,-1,-1,-1,-1,-1,0,1};
 			double [][] normalized_denseMatrix = new double[denseMatrix.length][];
 			double [][]minmax = {{-0.3,1.9},{-0.2,1.9},{-0.3,1.9},{-0.4,2.7},{-0.3,2.2}};
 			

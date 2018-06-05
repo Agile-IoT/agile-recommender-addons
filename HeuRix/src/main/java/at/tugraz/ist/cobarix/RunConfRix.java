@@ -41,8 +41,10 @@ public class RunConfRix {
 		boolean istype2 = false;
 		boolean isTestAccuracy = true;
 		boolean isBikeKB = false;
-		int r=3;
-		VariableSelector [] varheuristics = new VariableSelector [13];
+		int r=1;
+		VariableSelector [] varheuristics = new VariableSelector [9];
+		IntValueSelector valueorderingheuristics[]= new IntValueSelector[6];
+		int numberOfComparedHeuristics = 70;
 		
 		
 		
@@ -84,6 +86,7 @@ public class RunConfRix {
 		// STEP-2: GENERATE P and Q from SOLUTIONS
 		// *********************************************************************
 		// TODO: store UF and IF in objects
+		long mfstart = System.nanoTime();
 		DataModel dataModel;
 		int numFeatures =3; // mxk, kxn -> k value
 		int numIterations =2;
@@ -103,7 +106,9 @@ public class RunConfRix {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 		}	
+		long mfend = System.nanoTime();
 		
+		long mftime = mfend-mfstart;
 		System.out.println("STEP-2 is completed.");
 				
 
@@ -112,16 +117,16 @@ public class RunConfRix {
 		// STEP-3: GENERATE/READ NEW PROBLEMS 
 		// *********************************************************************
 		RecommendationTasks recommendationTasks= new RecommendationTasks(knowledgebase.numberOfVariables,r);
-		int numberOfProblems= 2;
-		int numberOfComparedHeuristics = 78; 
+		int numberOfProblems= 10;
+		//int numberOfComparedHeuristics = (varheuristics.length+1) * (valueorderingheuristics.length+1); // 70 
 		String outputDirectory =  "Files/ConfigDataset";
 		int [][] reqs;
 		 
 		 // recommendationTasks.recomTasks[h][i].
 		if(isTestAccuracy)
-			reqs = recommendationTasks.generateDataset_fromFile(numberOfVariables,histTransactions, numberOfProblems, numberOfComparedHeuristics,varheuristics.length);
+			reqs = recommendationTasks.generateDataset_fromFile(numberOfVariables,histTransactions, numberOfProblems, numberOfComparedHeuristics);
 		else
-			reqs = recommendationTasks.generateDataset(numberOfVariables,numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics,varheuristics.length,isBikeKB,isTestAccuracy);
+			reqs = recommendationTasks.generateDataset(numberOfVariables,numberOfProblems,solnSize,solutionsFile, outputDirectory,istype2, numberOfComparedHeuristics,varheuristics.length,valueorderingheuristics.length,isBikeKB,isTestAccuracy);
 		
 		System.out.println("STEP-3 is completed.");
 		
@@ -177,10 +182,14 @@ public class RunConfRix {
 		
 		
 		// *********************************************************************
-		// STEP-6: CONVERT PREDICTIONS TO VALUE ORDERINGS
+		// STEP-6: CONVERT PREDICTIONS INTO VARIABLE AND VALUE ORDERINGS
 		// *********************************************************************
 		for (int i=0;i<numberOfProblems;i++){
 			int index = 0;
+			
+			HashMap<Double,Integer> vars = new HashMap<Double,Integer>(knowledgebase.numberOfVariables);   
+			
+			
 			for(int v=0;v<knowledgebase.numberOfVariables;v++){
 				HashMap<Double,Integer> valuesOfv = new HashMap<Double,Integer>();    
 				for(int d=0;d<knowledgebase.domainSizes[v];d++){
@@ -189,18 +198,36 @@ public class RunConfRix {
 				}
 				List<Double> mapKeys = new ArrayList<>(valuesOfv.keySet());
 			    Collections.sort(mapKeys);
+			    Collections.reverse(mapKeys);
 			    
 			    for(int d=0;d<knowledgebase.domainSizes[v];d++){
 			    	int val_index = valuesOfv.get(mapKeys.get(d));
-			    	for (int h=0;h<varheuristics.length;h++){
-			    		recommendationTasks.recomTasks[h][i].valueOrdering[v][d] = val_index; 
+			    	for (int h=0;h<numberOfComparedHeuristics;h++){
+			    		recommendationTasks.recomTasks_copies[h][i].valueOrdering[v][d] = val_index; 
 			    	}
+			    	if (d==0)
+			    		vars.put(mapKeys.get(0),v);
 			    }
 			    
 			}
+			
+			List<Double> mapKeys2 = new ArrayList<>(vars.keySet());
+		    Collections.sort(mapKeys2);
+		    Collections.reverse(mapKeys2);
+			 
+	        for(int v=0;v<knowledgebase.numberOfVariables;v++){
+		    	int var_index = vars.get(mapKeys2.get(v));
+		    	for (int h=0;h<varheuristics.length;h++){
+		    		recommendationTasks.recomTasks_copies[h][i].variableOrdering[v] = var_index; 
+		    	}    	
+			}
+			
+			
 		}
 		long end =System.nanoTime();
 		System.out.println("STEP-6 is completed. Converting into value ordering in the online phase, time spent:  "+(end-end_step5));
+		
+		
 		
 		// *********************************************************************
 		// STEP-7: SOLVE PROBLEMS USING BUILT-IN VALUE ORDERINGS
@@ -213,7 +240,7 @@ public class RunConfRix {
 			recommendationTasks.recomTasks_copies[0][0].kb.getModelKB().getSolver().solve();
 		
 		// Compared Value Ordering Heuristics
-		IntValueSelector valueorderingheuristics[]= new IntValueSelector[6];
+		
 		
 		 valueorderingheuristics[0] = new IntDomainMax();
 		 valueorderingheuristics[1] = new IntDomainMin();
@@ -226,41 +253,78 @@ public class RunConfRix {
 	
 		 varheuristics[0] = new Smallest();
 		 varheuristics[1] = new Largest();
-		 varheuristics[2] = null; //new ActivityBased<>();
-		 varheuristics[3] = null; //new FirstFail(null);
-		 varheuristics[4] = null; //new AntiFirstFail(null);
-		 varheuristics[5] = new Cyclic<>();
-		 varheuristics[6] = new MaxRegret();
-		 varheuristics[7] = new Occurrence<>();
-		 varheuristics[8] = null; // new InputOrder<>(null);
-		 varheuristics[9] = null; //new DomOverWeg();
-		 varheuristics[10] = null; //new ImpactBased();
-		 varheuristics[11] = new GeneralizedMinDomVarSelector();
-		 varheuristics[12] = new org.chocosolver.solver.search.strategy.selectors.variables.Random<>((long)0.011);
+		// varheuristics[2] = null; //new ActivityBased<>();
+		 varheuristics[2] = null; //new FirstFail(null);
+		 varheuristics[3] = null; //new AntiFirstFail(null);
+		// varheuristics[5] = new Cyclic<>();
+		 //varheuristics[6] = new MaxRegret();
+		 varheuristics[4] = new Occurrence<>();
+		 varheuristics[5] = null; // new InputOrder<>(null);
+		 varheuristics[6] = null; //new DomOverWeg();
+		// varheuristics[10] = null; //new ImpactBased();
+		 varheuristics[7] = new GeneralizedMinDomVarSelector();
+		 varheuristics[8] = new org.chocosolver.solver.search.strategy.selectors.variables.Random<>((long)0.011);
 		
 		int index=0;
-		for (int j=0;j<varheuristics.length;j++){
+		for (int j=0;j<(varheuristics.length+1);j++){
 			
-			
-			
-			for(int h=0;h<valueorderingheuristics.length;h++){
+			for(int h=0;h<(valueorderingheuristics.length+1);h++){
 				
 				long avgtime2 = 0;
 				long start2=System.nanoTime();				
 				for (int i=1;i<numberOfProblems;i++){
 					//if(j!=numberOfComparedHeuristics-1)
-					switch(j){
-						case 2: recommendationTasks.recomTasks_copies[index][i].kb.getModelKB().getSolver().setSearch(new ActivityBased(recommendationTasks.recomTasks_copies[index][i].kb.getVars()));break;
-						case 3: varheuristics[3] =  new FirstFail(recommendationTasks.recomTasks_copies[index][i].kb.getModelKB()); break;
-						case 4: varheuristics[4] =  new AntiFirstFail(recommendationTasks.recomTasks_copies[index][i].kb.getModelKB()); break;
-						case 8: varheuristics[8] =  new InputOrder(recommendationTasks.recomTasks_copies[index][i].kb.getModelKB()); break;
-						case 9: recommendationTasks.recomTasks_copies[index][i].kb.getModelKB().getSolver().setSearch( new DomOverWDeg(recommendationTasks.recomTasks_copies[index][i].kb.getVars(), (long) 0.01, valueorderingheuristics[h])); break;
-						case 10: recommendationTasks.recomTasks_copies[index][i].kb.getModelKB().getSolver().setSearch( new ImpactBased(recommendationTasks.recomTasks_copies[index][i].kb.getVars(), false)); break;
-						default: recommendationTasks.recomTasks_copies[index][i].seValOrdHeuristics(varheuristics[j],valueorderingheuristics[h]); break;
-							
+					if (j==9 & h == 6)
+						recommendationTasks.recomTasks_copies[index][i].setCOBARIXHeuristics_both();
+					
+					else{
+						switch(j){
+							//case 2: recommendationTasks.recomTasks_copies[index][i].kb.getModelKB().getSolver().setSearch(new ActivityBased(recommendationTasks.recomTasks_copies[index][i].kb.getVars()));break;
+							case 2: 
+								varheuristics[2] =  new FirstFail(recommendationTasks.recomTasks_copies[index][i].kb.getModelKB());
+								if (h==6)
+									recommendationTasks.recomTasks_copies[index][i].setCOBARIXHeuristics_onlyValue(varheuristics[j]); 
+								else
+								recommendationTasks.recomTasks_copies[index][i].setComparedHeuristics(varheuristics[j],valueorderingheuristics[h]);
+								break;
+							case 3: 
+								varheuristics[3] =  new AntiFirstFail(recommendationTasks.recomTasks_copies[index][i].kb.getModelKB()); 
+								if (h==6)
+									recommendationTasks.recomTasks_copies[index][i].setCOBARIXHeuristics_onlyValue(varheuristics[j]); 
+								else
+									recommendationTasks.recomTasks_copies[index][i].setComparedHeuristics(varheuristics[j],valueorderingheuristics[h]);
+								break;
+							case 5: 
+								varheuristics[5] =  new InputOrder(recommendationTasks.recomTasks_copies[index][i].kb.getModelKB()); 
+								if (h==6)
+									recommendationTasks.recomTasks_copies[index][i].setCOBARIXHeuristics_onlyValue(varheuristics[j]); 
+								else
+									recommendationTasks.recomTasks_copies[index][i].setComparedHeuristics(varheuristics[j],valueorderingheuristics[h]);
+								break;
+							case 6: 
+								if (h==6){
+									recommendationTasks.recomTasks_copies[index][i].setCOBARIXHeuristics_onlyValue(varheuristics[j-1]); 
+								
+								}else
+									recommendationTasks.recomTasks_copies[index][i].kb.getModelKB().getSolver().setSearch( new DomOverWDeg(recommendationTasks.recomTasks_copies[index][i].kb.getVars(), (long) 0.01, valueorderingheuristics[h])); 
+								break;
+							//case 10: recommendationTasks.recomTasks_copies[index][i].kb.getModelKB().getSolver().setSearch( new ImpactBased(recommendationTasks.recomTasks_copies[index][i].kb.getVars(), false)); break;
+							case 9:
+								recommendationTasks.recomTasks_copies[index][i].setCOBARIXHeuristics_onlyVar(valueorderingheuristics[h]);
+								break;	
+							default: 
+								if (h==6)
+									recommendationTasks.recomTasks_copies[index][i].setCOBARIXHeuristics_onlyValue(varheuristics[j]); 
+								else
+									recommendationTasks.recomTasks_copies[index][i].setComparedHeuristics(varheuristics[j],valueorderingheuristics[h]); 
+									break;	
+						}
+						
+						
 					}
 					
 					start2=System.nanoTime();
+					System.out.println("j: "+j);
 					recommendationTasks.recomTasks_copies[index][i].kb.getModelKB().getSolver().solve();
 					long end2=System.nanoTime();
 					avgtime2 += (end2-start2);
@@ -268,9 +332,8 @@ public class RunConfRix {
 				index++;
 				
 				//long end2=System.nanoTime();
-				avgtime2 = (avgtime2)/(numberOfProblems-1); 
+				avgtime2 = (avgtime2)/(numberOfProblems-1)+mftime; 
 				//System.out.println("WITH HEURISTIC#"+j+"-"+h+": "+ avgtime2);
-				if(j!=2 && j!=10 && j!=4 && j!=5)
 				System.out.println(avgtime2);
 			}
 			
@@ -278,60 +341,64 @@ public class RunConfRix {
 		
 		System.out.println("STEP-7 is completed.");
 		
-
-		// *********************************************************************
-		// STEP-8: SOLVE PROBLEMS USING COBARIX
-		// *********************************************************************
-		System.out.println("STEP-8");
-		for (int j=0;j<varheuristics.length;j++){
-			// online spent time
-			long start3=System.nanoTime();
-			for (int i=0;i<numberOfProblems;i++){
-				
-				 
-				switch(j){
-					case 2: 
-						recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().setSearch(new ActivityBased(recommendationTasks.recomTasks[j][i].kb.getVars()));
-						break;
-					case 3: 
-						varheuristics[3] =  new FirstFail(recommendationTasks.recomTasks[j][i].kb.getModelKB()); 
-						recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics(varheuristics[j]); 
-						break;
-					case 4: 
-						varheuristics[4] =  new AntiFirstFail(recommendationTasks.recomTasks[j][i].kb.getModelKB()); 
-						recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics(varheuristics[j]); 
-						break;
-					case 8: 
-						varheuristics[8] =  new InputOrder(recommendationTasks.recomTasks[j][i].kb.getModelKB()); 
-						recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics(varheuristics[j]); 
-						break;
-					case 9: 
-						recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().setSearch( new DomOverWDeg(recommendationTasks.recomTasks[j][i].kb.getVars(), (long) 0.01, recommendationTasks.recomTasks[j][i].getCOBARIXHeuristics())); 
-						break;
-					case 10: 
-						recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().setSearch( new ImpactBased(recommendationTasks.recomTasks[j][i].kb.getVars(), false)); 
-						break;
-					default: 
-						recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics(varheuristics[j]); 
-						break;
-				}
-				
-			   
-			    recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().solve();
-				//System.out.println("Problem-"+i+"cobarix soln, value of Var0: "+((IntVar)(recommendationTasks.recomTasks[j][i].kb.getModelKB().getVar(0))).getValue());
-				//System.out.println("Problem-"+i+"cobarix soln, value of Var1: "+((IntVar)(recommendationTasks.recomTasks[j][i].kb.getModelKB().getVar(1))).getValue());
-			}
-			long end3=System.nanoTime();
-			
-			//long avgtime3 = ((end-start)+(end3-start3))/(numberOfProblems);
-			long avgtime3 = ((end3-start3))/(numberOfProblems);
-			//System.out.println("varheuristics ID: "+j+", WITH COBARIX: "+ (avgtime3));
-			if(j!=2 && j!=10 && j!=4 && j!=5)
-				System.out.println(avgtime3);
-		}
+//
+//		// *********************************************************************
+//		// STEP-8: SOLVE PROBLEMS USING COBARIX
+//		// *********************************************************************
+//		System.out.println("STEP-8");
+//		for (int j=0;j<varheuristics.length;j++){
+//			// online spent time
+//			long start3=System.nanoTime();
+//			for (int i=0;i<numberOfProblems;i++){
+//				
+//				 
+//				switch(j){
+//					case 2: 
+//						recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().setSearch(new ActivityBased(recommendationTasks.recomTasks[j][i].kb.getVars()));
+//						break;
+//					case 3: 
+//						varheuristics[3] =  new FirstFail(recommendationTasks.recomTasks[j][i].kb.getModelKB()); 
+//						recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics_onlyValue(varheuristics[j]); 
+//						break;
+//					case 4: 
+//						varheuristics[4] =  new AntiFirstFail(recommendationTasks.recomTasks[j][i].kb.getModelKB()); 
+//						recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics_onlyValue(varheuristics[j]); 
+//						break;
+//					case 8: 
+//						varheuristics[8] =  new InputOrder(recommendationTasks.recomTasks[j][i].kb.getModelKB()); 
+//						recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics_onlyValue(varheuristics[j]); 
+//						break;
+//					case 9: 
+//						recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().setSearch( new DomOverWDeg(recommendationTasks.recomTasks[j][i].kb.getVars(), (long) 0.01, recommendationTasks.recomTasks[j][i].getCOBARIXHeuristics())); 
+//						break;
+//					case 10: 
+//						recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().setSearch( new ImpactBased(recommendationTasks.recomTasks[j][i].kb.getVars(), false)); 
+//						break;
+//					default: 
+//						recommendationTasks.recomTasks[j][i].setCOBARIXHeuristics_onlyValue(varheuristics[j]); 
+//						break;
+//				}
+//				
+//			   
+//			    recommendationTasks.recomTasks[j][i].kb.getModelKB().getSolver().solve();
+//				//System.out.println("Problem-"+i+"cobarix soln, value of Var0: "+((IntVar)(recommendationTasks.recomTasks[j][i].kb.getModelKB().getVar(0))).getValue());
+//				//System.out.println("Problem-"+i+"cobarix soln, value of Var1: "+((IntVar)(recommendationTasks.recomTasks[j][i].kb.getModelKB().getVar(1))).getValue());
+//			}
+//			long end3=System.nanoTime();
+//			
+//			//long avgtime3 = ((end-start)+(end3-start3))/(numberOfProblems);
+//			long avgtime3 = ((end3-start3))/(numberOfProblems);
+//			//System.out.println("varheuristics ID: "+j+", WITH COBARIX: "+ (avgtime3));
+//			if(j!=2 && j!=10 && j!=4 && j!=5)
+//				System.out.println(avgtime3);
+//		}
+//		
+//		System.out.println("STEP-8 is completed.");
 		
-		System.out.println("STEP-8 is completed.");
 		
+		// *********************************************************************
+		// *********************************************************************
+		// *********************************************************************
 		
 		if(isTestAccuracy){
 			
@@ -341,66 +408,86 @@ public class RunConfRix {
 			// isTestAccuracy = true
 			int [][] recommendationsCobarix = new int [numberOfProblems][knowledgebase.numberOfVariables];
 			double accuracyTotal = 0;
-			for (int h=0;h<3;h++){
-				int id = 1;
+//			for (int h=0;h<3;h++){
+//				int id = 1;
+//				
+//				if (h==0)
+//					id=1;
+//				if (h==1)
+//					id=4;
+//				if (h==2)
+//					id=6;
+//				
+//				for (int i=0;i<numberOfProblems;i++){
+//					
+//					for(int j=0;j<knowledgebase.numberOfVariables;j++)
+//						recommendationsCobarix [i][j] = ((IntVar)(recommendationTasks.recomTasks[h][i].kb.getModelKB().getVar(j))).getValue();
+//					
+//					//System.out.println("Problem-"+i+"cobarix soln, value of Var0: "+recommendationsCobarix [i][0]);
+//					//System.out.println("Problem-"+i+"cobarix soln, value of Var1: "+recommendationsCobarix [i][1]);
+//				}
+//				
+//				double accuracy = recommendationTasks.getAccuracy(recommendationsCobarix,h,knowledgebase);
+//				System.out.println("varheuristics ID: "+h+", accuracy of COBARIX: "+ accuracy);
+//				accuracyTotal += accuracy;
+//			}
+			int item = 0;
+			
+			for (int h=0;h<(varheuristics.length+1);h++){
 				
-				if (h==0)
-					id=1;
-				if (h==1)
-					id=4;
-				if (h==2)
-					id=6;
-				
-				for (int i=0;i<numberOfProblems;i++){
+				for (int v=0;v<(valueorderingheuristics.length+1);v++){
+					accuracyTotal = 0;
+					for (int i=1;i<numberOfProblems;i++){
+						
+						for(int j=0;j<knowledgebase.numberOfVariables;j++)
+							recommendationsCobarix [i][j] = ((IntVar)(recommendationTasks.recomTasks_copies[item][i].kb.getModelKB().getVar(j))).getValue();
+						
+						double accuracy = recommendationTasks.getAccuracy(recommendationsCobarix,i,knowledgebase);
+						//System.out.println("varheuristics ID: "+h+"val Heu ID: "+v+", accuracy: "+ accuracy);
+						accuracyTotal += accuracy;
+					}
 					
-					for(int j=0;j<knowledgebase.numberOfVariables;j++)
-						recommendationsCobarix [i][j] = ((IntVar)(recommendationTasks.recomTasks[h][i].kb.getModelKB().getVar(j))).getValue();
-					
-					//System.out.println("Problem-"+i+"cobarix soln, value of Var0: "+recommendationsCobarix [i][0]);
-					//System.out.println("Problem-"+i+"cobarix soln, value of Var1: "+recommendationsCobarix [i][1]);
+					System.out.println(accuracyTotal/(numberOfProblems-1));
+					item++;
 				}
 				
-				double accuracy = recommendationTasks.getAccuracy(recommendationsCobarix,h,knowledgebase);
-				System.out.println("varheuristics ID: "+h+", accuracy of COBARIX: "+ accuracy);
-				accuracyTotal += accuracy;
 			}
-			
-			System.out.println("avg accuracy of COBARIX: "+ accuracyTotal/3);
+			//System.out.println("avg accuracy of COBARIX: "+ accuracyTotal/3);
 			System.out.println("STEP-9 is completed.");
 			
-			
-			// *********************************************************************
-			// STEP-10: ACCURACY OF KNN
-			// *********************************************************************
-			// isTestAccuracy = true
-			int [] recommendationsKNN = new int [numberOfProblems];
-			for (int i=0;i<numberOfProblems;i++){
-				int [] similars = KNN.getKNN(1, recommendationTasks.reqs[i], knowledgebase.purchases, knowledgebase.kb);
-				//int recommendedItem = KNN.aggregateProductID(similars, recommendationTasks);
-				recommendationsKNN [i] = similars[0];
-			}
-			
-			double accuracy_knn = recommendationTasks.getAccuracy(recommendationsKNN,knowledgebase);
-			System.out.println("Accuracy of KNN: "+ accuracy_knn);
-			System.out.println("STEP-10 is completed.");
-			
-			
-			
-			// *********************************************************************
-			// STEP-11: ACCURACY OF Mahout CF Similarities
-			// *********************************************************************
-			// isTestAccuracy = true
-			int [] recommendedIDs = new int [numberOfProblems];
-			for (int m=0;m<4;m++){
-				for (int i=0;i<numberOfProblems;i++){
-					recommendedIDs[i] = CollaborativeFiltering.applyCollaborativeFiltering(recommendationTasks.reqs[i],knowledgebase.kb.getDomains(),m);
-				}
-				
-				double accuracy_mahout = recommendationTasks.getAccuracy(recommendedIDs,knowledgebase);
-				System.out.println("Accuracy of Mahout-"+m+": "+ accuracy_mahout);
-			
-			}
-			System.out.println("STEP-11 is completed.");
+//			
+//			// *********************************************************************
+//			// STEP-10: ACCURACY OF KNN
+//			// *********************************************************************
+//			// isTestAccuracy = true
+//			int [] recommendationsKNN = new int [numberOfProblems];
+//			for (int i=0;i<numberOfProblems;i++){
+//				int [] similars = KNN.getKNN(1, recommendationTasks.reqs[i], knowledgebase.purchases, knowledgebase.kb);
+//				//int recommendedItem = KNN.aggregateProductID(similars, recommendationTasks);
+//				recommendationsKNN [i] = similars[0];
+//			}
+//			
+//			double accuracy_knn = recommendationTasks.getAccuracy(recommendationsKNN,knowledgebase);
+//			System.out.println("Accuracy of KNN: "+ accuracy_knn);
+//			System.out.println("STEP-10 is completed.");
+//			
+//			
+//			
+//			// *********************************************************************
+//			// STEP-11: ACCURACY OF Mahout CF Similarities
+//			// *********************************************************************
+//			// isTestAccuracy = true
+//			int [] recommendedIDs = new int [numberOfProblems];
+//			for (int m=0;m<4;m++){
+//				for (int i=0;i<numberOfProblems;i++){
+//					recommendedIDs[i] = CollaborativeFiltering.applyCollaborativeFiltering(recommendationTasks.reqs[i],knowledgebase.kb.getDomains(),m);
+//				}
+//				
+//				double accuracy_mahout = recommendationTasks.getAccuracy(recommendedIDs,knowledgebase);
+//				System.out.println("Accuracy of Mahout-"+m+": "+ accuracy_mahout);
+//			
+//			}
+//			System.out.println("STEP-11 is completed.");
 		
 		}
 		
