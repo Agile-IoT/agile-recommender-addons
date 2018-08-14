@@ -8,3 +8,6 @@ calculates diagnoses for the agile protocol configurator
 
 ## HeuRix
 recommends configurations for the agile protocol configurator
+
+## metaconfigurator
+creates an ASP program to use as a configurator from a JSON file representing an arbitrary domain
