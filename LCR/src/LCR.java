@@ -38,9 +38,9 @@ public class LCR {
 			 
 		 // 1- DEFINE INPUT FOLDER 
 		 int numberOfProblems= 1; //20
-		 int numberOfDataFiles= 5; // 2
+		 int numberOfDataFiles= 1; // 2
 		 int numberOfReqs=10;
-		 int m = 4;
+		 int m = 1;
 		 int numberOfPastTransactions = 4;
 		 int pastReqs[][] = new int[numberOfPastTransactions][];
 		 Constraint diagnoses[][] = new Constraint[numberOfPastTransactions-1][];
@@ -85,7 +85,7 @@ public class LCR {
 					 // vars[0].
 					 IntVar [] intVars = solver.retrieveIntVars();
 					 numberOfVariables = intVars.length;
-					 numberOfReqs = numberOfVariables/2;
+					 //numberOfReqs = numberOfVariables/2;
 					 double [][] minmax = new double [numberOfVariables][2];
 					 for(int n=0;n<numberOfVariables;n++){
 						 minmax[n][0]= intVars[n].getLB();
@@ -254,8 +254,8 @@ public class LCR {
 				
 				Constraint [] diagnosis_lcr = FlexDiag.diagnose(solver_lcr,pastReqs_sorted,numberOfReqs,m);
 				long endTime_lcr = System.nanoTime();
-				//long runtime_lcr = (endTime - startTime) + (endTime_lcr-startTime_lcr); 
-				long runtime_lcr = (endTime_lcr-startTime_lcr); 
+				long runtime_lcr = (endTime - startTime) + (endTime_lcr-startTime_lcr); 
+				//long runtime_lcr = (endTime_lcr-startTime_lcr); 
 				double runtime_lcr_double= (double)(runtime_lcr) / 1000000000;
 				System.out.println("end of diagnosis-1");
 				
@@ -309,10 +309,13 @@ public class LCR {
 				Constraint [] diagnosis_fd2 = FlexDiag.diagnose(solver_fd2,numberOfReqs,1);
 				
 				double minimality_lcr = (double)((double)(diagnosis_fd2.length))/ ((double)(diagnosis_lcr.length));
-			    double minimality_fd = (double)((double)(diagnosis_fd2.length))/ ((double)(diagnosis_fd.length));
+			    if(minimality_lcr<1)
+			    	System.out.println("PROBLEM");
+				double minimality_fd = (double)((double)(diagnosis_fd2.length))/ ((double)(diagnosis_fd.length));
 			    double combined_lcr= minimality_lcr / runtime_lcr_double;
 			    double combined_fd= minimality_fd / runtime_fd_double;
 			    double improvementRatio = (combined_lcr-combined_fd)/ combined_fd;
+			    improvementRatio = improvementRatio*100;
 			    System.out.println("end of diagnosis-3");		
 						
 				// 10- PRINT RESULTS
