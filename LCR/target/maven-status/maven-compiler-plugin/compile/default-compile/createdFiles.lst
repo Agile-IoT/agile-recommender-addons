@@ -1,0 +1,8 @@
+test\TestFlexDiag.class
+test\TestFZN.class
+algorithms\FlexDiag.class
+LCR.class
+algorithms\MinMaxNormalization.class
+algorithms\MatrixFactorization.class
+test\TestChoco.class
+utils\WriteToFile.class

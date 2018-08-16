@@ -3,8 +3,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 
+import org.chocosolver.parser.ParserListener;
 import org.chocosolver.parser.flatzinc.BaseFlatzincListener;
 import org.chocosolver.parser.flatzinc.Flatzinc;
+import org.chocosolver.parser.flatzinc.FznSettings;
 import org.chocosolver.solver.Solver;
 import org.chocosolver.solver.constraints.Constraint;
 import org.chocosolver.solver.constraints.IntConstraintFactory;
@@ -22,16 +24,46 @@ public class TestFZN {
 	 public static void main(String[] args) throws Exception {
 		 
 		 // 1- DEFINE INPUT FILE
-		 File initialFile = new File("C:/Users/spolater/Desktop/AGILE/STS_WORKSPACE/MFCOH/FILES/test1.czn");
-		 InputStream targetStream = new FileInputStream(initialFile);
+		// File initialFile = new File("C:/Users/spolater/Desktop/AGILE/STS_WORKSPACE/LCR/FILES/ChocoZN/test0_0.czn");
+		 String initialFile = new String("C:/Users/spolater/Desktop/AGILE/STS_WORKSPACE/LCR/FILES/ChocoZN/test0_0.czn");
+		 args = new String [1];
+		 args[0] =initialFile;
+		 //InputStream targetStream = new FileInputStream(initialFile);
 		 
+		 
+		 // CHOCO3.3 PARSER:
+//		 System.out.println("Problem #"+i+", DataFile#"+j);
+//		 File initialFile = new File("C:/Users/spolater/Desktop/AGILE/STS_WORKSPACE/LCR/FILES/ChocoZN/test"+i+"_"+j+".czn");
+//		 InputStream targetStream = new FileInputStream(initialFile);
+//		 
+//		 // 3- GENERATE PAST TRANSACTIONS 
+//		 
+//		 String outputFile = "C:/Users/spolater/Desktop/AGILE/STS_WORKSPACE/LCR/FILES/PastReqs/past"+i+"_"+j+".czn"; 
+//		 int numberOfVariables=0;
+//			 
+//			 // CREATE SOLVER AND LOAD INPUT FILE
+//			 targetStream = new FileInputStream(initialFile);
+//			 fzn[p] = new Flatzinc();
+//			 fzn[p].createSolver();	
+//			 Solver solver = fzn[p].getSolver();
+//			 //fzn[p].parse(solver, targetStream);
+//			 fzn[p].parse(targetStream);
 		 
 		 // 2- CREATE SOLVER AND LOAD INPUT FILE
+	
 		 Flatzinc fzn = new Flatzinc();
-		 fzn.createSolver();	
+         fzn.addListener(new BaseFlatzincListener(fzn));
+
+         fzn.parseParameters(args);
+         fzn.defineSettings(new FznSettings());
+         fzn.createSolver();
+         fzn.parseInputFile();
+         fzn.configureSearch();
+         //fzn.solve();
+		
+         //fzn.parse(solver, targetStream);
+		//fzn.parseInputFile();
 		 Solver solver = fzn.getSolver();
-		 fzn.parse(solver, targetStream);
-		 
 		 // GET VARIABLES
 		 IntVar [] intVars = solver.retrieveIntVars();
 		 BoolVar[] boolVars = solver.retrieveBoolVars();
