@@ -1,13 +1,19 @@
-Add-on tools for the agile recommender service:
+Add-on tools of the agile recommender & configurator services:
 
 ## ClusterSpecificHeuristics
-calculates heuristics for the agile protocol configurator
+learns heuristics to solve CSPs quicly
 
 ## CSD
-calculates diagnoses for the agile protocol configurator
+learns heuristics to diagnose inconsistent CSPs quicly&accurately
 
 ## HeuRix
-recommends configurations for the agile protocol configurator
+learns matrix factorization based heuristics to solve CSPs quicly&accurately
+
+## LCR
+learns matrix factorization based heuristics to diagnose inconsistent CSPs quicly&accurately
 
 ## metaconfigurator
 creates an ASP program to use as a configurator from a JSON file representing an arbitrary domain
+
+## HealthiotRecommender
+recommends walking & sleeping plan for insomnia patients
