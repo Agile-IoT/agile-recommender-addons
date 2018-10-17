@@ -14,7 +14,11 @@ import java.util.List;
 
 public class CSVReader {
 
-    
+//	private String getDir(String filename){
+//		ClassLoader classLoader = getClass().getClassLoader();
+//		return classLoader.getResource(filename).getFile();
+//	}
+//    
     public static List<User> readAllUsers(){
     	 List<User> userList = new ArrayList<User>();
     	 //String s = "2013-09-29 18:46:19";
@@ -22,11 +26,15 @@ public class CSVReader {
 		 SimpleDateFormat onlyDateFormat = new SimpleDateFormat("yyyyMMdd");
 		 
     	
-    	 String csvFile1 = "C:\\Users\\spolater\\Desktop\\EVOS dataset\\steps\\steps.csv";
-    	 List<String[]> parsedLines1 = parseLines (csvFile1);
+    	 //String csvFile1 = "C:\\Users\\spolater\\Desktop\\EVOS dataset\\steps\\steps.csv";
+		 //String csvFile1 = "/var/lib/tomcat8\\webapps\\steps.csv";
+		 //String csvFile1 = getDir("Files/steps.csv");
+		 String csvFile1 = "/home/agile/Files/steps.csv";
+		 List<String[]> parsedLines1 = parseLines (csvFile1);
     	 // id,effective_date_time,steps,units,type_id,user_id,gender_id,year_of_birth
     	 Hashtable<String, User> hashmap1 = new Hashtable<String,User>();
     	 
+    	
     	 for(int i=0;i<parsedLines1.size();i++){
     		 User usr;
     		 
@@ -37,6 +45,12 @@ public class CSVReader {
     			 usr.setID(parsedLines1.get(i)[5]);
     			 usr.setGender(Integer.valueOf(parsedLines1.get(i)[6]));
     			 usr.setIndex(hashmap1.size()+1);
+    			 /// AGE ///
+    			 Calendar calendar = Calendar.getInstance();
+    	    	 calendar.setTime(new Date());
+    			 if(!parsedLines1.get(i)[7].contains("NULL"))
+    				 usr.setAge(calendar.get(Calendar.YEAR) - Integer.valueOf(parsedLines1.get(i)[7]));
+    			 ///////////
     		 }
     		 
     		 int steps = Integer.valueOf(parsedLines1.get(i)[2]);
@@ -85,7 +99,9 @@ public class CSVReader {
     		 hashmap1.put(parsedLines1.get(i)[5], usr);	 
     	 }
     	 
-    	 String csvFile2 = "C:\\Users\\spolater\\Desktop\\EVOS dataset\\sleep\\sleep.csv";
+    	 //String csvFile2 = "C:\\Users\\spolater\\Desktop\\EVOS dataset\\sleep\\sleep.csv";
+    	 //String csvFile2 = getDir("Files/sleep.csv");
+    	 String csvFile2 =  "/home/agile/Files/sleep.csv";
     	 List<String[]> parsedLines2 = parseLines (csvFile2);
     	 // id,effective_date_time,sleep_type,units,type_id,user_id,gender_id,year_of_birth
     	 
@@ -99,6 +115,12 @@ public class CSVReader {
     			 usr.setID(parsedLines2.get(i)[5]);
     			 usr.setGender(Integer.valueOf(parsedLines1.get(i)[6]));
     			 usr.setIndex(hashmap1.size()+1);
+    			 /// AGE ///
+    			 Calendar calendar = Calendar.getInstance();
+    	    	 calendar.setTime(new Date());
+    			 if(!parsedLines1.get(i)[7].contains("NULL"))
+    				 usr.setAge(calendar.get(Calendar.YEAR) - Integer.valueOf(parsedLines1.get(i)[7]));
+    			 ///////////
     		 }
     		 int sleepQuality = Integer.valueOf(parsedLines2.get(i)[2]);
     		 Date dateTime = null;

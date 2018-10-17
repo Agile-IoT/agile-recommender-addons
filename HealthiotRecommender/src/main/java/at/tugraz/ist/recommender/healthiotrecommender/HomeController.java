@@ -2,6 +2,7 @@ package at.tugraz.ist.recommender.healthiotrecommender;
 
 import java.text.DateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import org.slf4j.Logger;
@@ -21,8 +22,10 @@ public class HomeController {
 	
 	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
 
-	String filename = System.getProperty("user.dir")+"\\UserActivities";
+	//String filename = System.getProperty("user.dir")+"\\UserActivities";
+	String filename = "/home/agile/Files/UserActivities";
 	int numberofusers=0;
+	int numberofitems=0;
 	
 	boolean isInitiated=false;
 	
@@ -46,26 +49,44 @@ public class HomeController {
     		initate();
     	
 			
-		model.addAttribute("message", numberofusers);
+		model.addAttribute("users", numberofusers);
+		model.addAttribute("items", numberofitems);
 		
 		return "home";
 	}
 	
     @RequestMapping(value = "/getActivityRecommendation", method = RequestMethod.POST)
-   	public @ResponseBody ActivityRecommendation getActivityRecommendation(@RequestBody User newuser) {
+   	public @ResponseBody ActivityRecommendationList getActivityRecommendation(@RequestBody User newuser) {
        	
     	int genderCode = Integer.valueOf(newuser.getGender());
     	if(genderCode==2)
     		genderCode=5;
-   		
-    	ActivityRecommendation recommendation = Recommender.applyCollaborativeFiltering(genderCode,filename,numberofusers);
+    	else if(genderCode==2)
+    		genderCode=3;
     	
-   		return recommendation;
+    	int ageCode = Integer.valueOf(newuser.getAge());
+    	if(ageCode<20)
+    		ageCode=1;
+    	else if(ageCode<40)
+    		ageCode=2;
+    	else if(ageCode<60)
+    		ageCode=3;
+    	else if(ageCode<80)
+    		ageCode=4;
+    	else 
+    		ageCode=5;
+    	
+    	List<ActivityRecommendation> recommendations = Recommender.applyCollaborativeFiltering(genderCode,ageCode,filename,numberofusers);
+    	
+    	ActivityRecommendationList returnModel = new ActivityRecommendationList();
+   		returnModel.setActivityRecommendation_list(recommendations);
+   		return returnModel;
    	}
 	
     public void initate(){
     	
     	numberofusers = DataParser.parseFile(filename);
+    	numberofitems = Recommender.getNumberOfItems(filename);
     	isInitiated=true;
     }
 	

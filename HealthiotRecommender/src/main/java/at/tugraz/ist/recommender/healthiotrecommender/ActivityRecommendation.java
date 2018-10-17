@@ -6,8 +6,6 @@ public class ActivityRecommendation {
 		
 	}
 	
-	String intro1;
-	String intro2;
 	
 	String steps1;
 	String steps2;
@@ -21,30 +19,6 @@ public class ActivityRecommendation {
 	
 	
 	
-	/**
-	 * @return the intro1
-	 */
-	public String getIntro1() {
-		return intro1;
-	}
-	/**
-	 * @param intro1 the intro1 to set
-	 */
-	public void setIntro1(String intro1) {
-		this.intro1 = intro1;
-	}
-	/**
-	 * @return the intro2
-	 */
-	public String getIntro2() {
-		return intro2;
-	}
-	/**
-	 * @param intro2 the intro2 to set
-	 */
-	public void setIntro2(String intro2) {
-		this.intro2 = intro2;
-	}
 	public String getSteps1() {
 		return steps1;
 	}

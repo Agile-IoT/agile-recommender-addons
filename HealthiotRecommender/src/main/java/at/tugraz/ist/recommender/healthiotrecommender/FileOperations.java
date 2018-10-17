@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.RandomAccessFile;
 import java.nio.file.Files;
 
 public class FileOperations {
@@ -32,6 +33,18 @@ public class FileOperations {
 			e.printStackTrace();
 		}
     }
+	public static void removeLastLine (String fileName){
+		  try{
+	             RandomAccessFile raf = new RandomAccessFile(fileName, "rw");
+	             long length = raf.length();
+	             System.out.println("File Length="+raf.length());
+	             raf.setLength(length - 9);
+	             System.out.println("File Length="+raf.length());
+	             raf.close();
+	       }catch(Exception ex){
+	             ex.printStackTrace();
+	       }
+	}
 	
 
 }
