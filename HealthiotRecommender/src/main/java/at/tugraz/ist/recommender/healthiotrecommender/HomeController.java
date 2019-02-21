@@ -1,7 +1,10 @@
 package at.tugraz.ist.recommender.healthiotrecommender;
 
 import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Hashtable;
 import java.util.List;
 import java.util.Locale;
 
@@ -22,7 +25,7 @@ public class HomeController {
 	
 	private static final Logger logger = LoggerFactory.getLogger(HomeController.class);
 
-	//String filename = System.getProperty("user.dir")+"\\UserActivities";
+	//String filename = "C:\\Users\\spolater\\Desktop\\AGILE\\STS_WORKSPACE\\HealthiotRecommender\\UserActivities";
 	String filename = "/home/agile/Files/UserActivities";
 	int numberofusers=0;
 	int numberofitems=0;
@@ -55,28 +58,53 @@ public class HomeController {
 		return "home";
 	}
 	
+	@RequestMapping(value = "/test", method = RequestMethod.GET)
+	@ResponseBody
+	public User test() {
+		User u = new User();
+		u.setAge(30);
+		u.setGender(3);
+		u.setID("12345");
+		Sleep s = new Sleep();
+		s.sleep1=40;
+		s.sleep2=40;
+		s.sleep3=40;
+		s.sleep1count=5;
+		s.sleep2count=5;
+		s.sleep3count=5;
+		
+		Steps t = new Steps();
+		t.steps1=100;
+		t.steps2=100;
+		t.steps3=100;
+		t.stepstotal=300;
+		t.steps1count=5;
+		t.steps2count=5;
+		t.steps3count=5;
+		t.stepstotalcount=15;
+		
+		String date = "20190117,1";
+		
+		Hashtable<String, Steps> stepsRecords = new Hashtable<String,Steps>();
+		Hashtable<String, Sleep> sleepRecords = new Hashtable<String,Sleep>();
+		stepsRecords.put(date, t);
+		sleepRecords.put(date, s);
+		
+		u.setAvgSleeps(s);
+		u.setAvgSteps(t);
+		u.setAge(30);
+		u.setSleepRecords(sleepRecords);
+		u.setStepsRecords(stepsRecords);
+		
+		return u;
+	}
+	
     @RequestMapping(value = "/getActivityRecommendation", method = RequestMethod.POST)
    	public @ResponseBody ActivityRecommendationList getActivityRecommendation(@RequestBody User newuser) {
        	
-    	int genderCode = Integer.valueOf(newuser.getGender());
-    	if(genderCode==2)
-    		genderCode=5;
-    	else if(genderCode==2)
-    		genderCode=3;
     	
-    	int ageCode = Integer.valueOf(newuser.getAge());
-    	if(ageCode<20)
-    		ageCode=1;
-    	else if(ageCode<40)
-    		ageCode=2;
-    	else if(ageCode<60)
-    		ageCode=3;
-    	else if(ageCode<80)
-    		ageCode=4;
-    	else 
-    		ageCode=5;
     	
-    	List<ActivityRecommendation> recommendations = Recommender.applyCollaborativeFiltering(genderCode,ageCode,filename,numberofusers);
+    	List<ActivityRecommendation> recommendations = Recommender.applyCollaborativeFiltering(newuser,filename,numberofusers);
     	
     	ActivityRecommendationList returnModel = new ActivityRecommendationList();
    		returnModel.setActivityRecommendation_list(recommendations);

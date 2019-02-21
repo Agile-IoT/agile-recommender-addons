@@ -1,23 +1,14 @@
 package at.tugraz.ist.cobarix;
 
-import static org.chocosolver.solver.search.strategy.Search.intVarSearch;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
-import org.apache.commons.io.FileUtils;
 import org.chocosolver.solver.variables.IntVar;
 
-import at.tugraz.ist.fileOperations.ReadFile;
-import at.tugraz.ist.fileOperations.WriteToFile;
 import at.tugraz.ist.knowledgebases.Bike2KB;
 import at.tugraz.ist.knowledgebases.CameraKB;
 import at.tugraz.ist.knowledgebases.PCKB;

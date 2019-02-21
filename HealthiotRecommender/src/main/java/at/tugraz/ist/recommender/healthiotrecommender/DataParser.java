@@ -20,11 +20,12 @@ public class DataParser
         SimpleDateFormat onlyDateFormat = new SimpleDateFormat("yyyyMMdd");
         
         //String filename = System.getProperty("user.dir")+"\\UserActivities";
+        
         FileOperations.cleanFile(filename);
         
         
         List<User> userList = new ArrayList<User>();
-        userList =  (new CSVReader()).readAllUsers();
+        userList =  CSVReader.readAllUsers();
        
         for(int i=0;i<userList.size();i++){
         	 int index = userList.get(i).index;

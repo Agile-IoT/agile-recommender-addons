@@ -45,12 +45,7 @@ public class MyChocoSolver {
 		 boolean isSolved= solver.solve();
 		 long end = System.nanoTime();
 		 time = end-start;
-		 
-//		 solver.printStatistics();
-//		 while(solver.solve()){
-//			 System.out.println(((IntVar) chocoModel.getVar(0)).getValue());
-//		 }
-	
+
 		 return time;
 	}
 		 

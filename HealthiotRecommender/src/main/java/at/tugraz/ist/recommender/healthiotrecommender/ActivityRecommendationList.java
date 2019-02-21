@@ -5,7 +5,9 @@ import java.util.List;
 
 public class ActivityRecommendationList {
 	
-	ActivityRecommendationList(){}
+	public ActivityRecommendationList(){}
+	
+	String flag = "green";
 	
 	String intro1 = "Recent scientific works show that Insomnia (a sleep disorder) can be solved with a personal physical acticity plan.";
 	String intro2 = "Therefore, according to your profile, for a high quality sleep, we recommend you several walking and sleeping plans as below:";
@@ -47,6 +49,18 @@ public class ActivityRecommendationList {
 	 */
 	public void setActivityRecommendation_list(List<ActivityRecommendation> activityRecommendation_list) {
 		this.activityRecommendation_list = activityRecommendation_list;
+	}
+	/**
+	 * @return the flag
+	 */
+	public String getFlag() {
+		return flag;
+	}
+	/**
+	 * @param flag the flag to set
+	 */
+	public void setFlag(String flag) {
+		this.flag = flag;
 	}
 	
 

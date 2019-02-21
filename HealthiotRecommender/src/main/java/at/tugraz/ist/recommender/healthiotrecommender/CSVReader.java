@@ -25,10 +25,7 @@ public class CSVReader {
 		 SimpleDateFormat inFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		 SimpleDateFormat onlyDateFormat = new SimpleDateFormat("yyyyMMdd");
 		 
-    	
-    	 //String csvFile1 = "C:\\Users\\spolater\\Desktop\\EVOS dataset\\steps\\steps.csv";
-		 //String csvFile1 = "/var/lib/tomcat8\\webapps\\steps.csv";
-		 //String csvFile1 = getDir("Files/steps.csv");
+		 //String csvFile1 = "C:\\Users\\spolater\\Desktop\\AGILE\\STS_WORKSPACE\\HealthiotRecommender\\steps.csv";
 		 String csvFile1 = "/home/agile/Files/steps.csv";
 		 List<String[]> parsedLines1 = parseLines (csvFile1);
     	 // id,effective_date_time,steps,units,type_id,user_id,gender_id,year_of_birth
@@ -99,9 +96,8 @@ public class CSVReader {
     		 hashmap1.put(parsedLines1.get(i)[5], usr);	 
     	 }
     	 
-    	 //String csvFile2 = "C:\\Users\\spolater\\Desktop\\EVOS dataset\\sleep\\sleep.csv";
-    	 //String csvFile2 = getDir("Files/sleep.csv");
     	 String csvFile2 =  "/home/agile/Files/sleep.csv";
+    	 //String csvFile2 = "C:\\Users\\spolater\\Desktop\\AGILE\\STS_WORKSPACE\\HealthiotRecommender\\sleep.csv";
     	 List<String[]> parsedLines2 = parseLines (csvFile2);
     	 // id,effective_date_time,sleep_type,units,type_id,user_id,gender_id,year_of_birth
     	 
@@ -188,8 +184,8 @@ public class CSVReader {
 
         List<String[]> parsedLines = new ArrayList<String[]>();
         		
-        try (BufferedReader br = new BufferedReader(new FileReader(csvFile))) {
-
+        try {
+        	BufferedReader br = new BufferedReader(new FileReader(csvFile));
             while ((line = br.readLine()) != null) {
                 // use comma as separator
                 String[] parsedLine = line.split(cvsSplitBy);

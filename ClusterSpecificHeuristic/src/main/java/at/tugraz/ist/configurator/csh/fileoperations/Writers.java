@@ -10,7 +10,6 @@ import org.chocosolver.solver.variables.IntVar;
 
 public class Writers {
 	
-
 	 public void writeToFile(IntVar[][] vars, String modelsName){
 		 
 		    List<String> lines = new ArrayList<String>();
@@ -54,7 +53,5 @@ public class Writers {
 		 
 		
 	 }
-
-
 
 }
